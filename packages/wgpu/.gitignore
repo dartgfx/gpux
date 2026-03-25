@@ -1,0 +1,14 @@
+# Rust build artifacts
+native/target/
+
+# Generated files
+*.so
+*.dylib
+*.dll
+
+# IDE
+.idea/
+*.iml
+
+# macOS
+.DS_Store

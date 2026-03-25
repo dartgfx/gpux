@@ -1,0 +1,32 @@
+# Rust toolchain configuration for Native Assets
+#
+# Pin a specific version for reproducible builds across all platforms.
+
+[toolchain]
+channel = "1.92.0"
+
+# Cross-compilation targets
+# native_toolchain_rust will install these automatically when needed
+targets = [
+  # macOS
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+
+  # iOS
+  "aarch64-apple-ios",
+  "aarch64-apple-ios-sim",
+  "x86_64-apple-ios",
+
+  # Android
+  "aarch64-linux-android",
+  "armv7-linux-androideabi",
+  "x86_64-linux-android",
+
+  # Windows
+  "x86_64-pc-windows-msvc",
+  "aarch64-pc-windows-msvc",
+
+  # Linux
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+]

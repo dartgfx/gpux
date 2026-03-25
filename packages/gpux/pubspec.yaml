@@ -1,0 +1,22 @@
+name: gpux
+description: Cross-platform GPU for Dart. Works on web and native.
+version: 0.1.0
+repository: https://github.com/dartgfx/gpux
+topics:
+  - gpu
+  - webgpu
+  - graphics
+
+resolution: workspace
+environment:
+  sdk: ^3.10.0
+
+
+dependencies:
+  gpuweb: ^0.1.0
+  gpuweb_js: ^0.1.0
+  meta: ^1.16.0
+  wgpu: ^0.1.0
+
+dev_dependencies:
+  test: ^1.24.0

@@ -1,0 +1,15 @@
+name: gpux_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+workspace:
+  - packages/gpuweb
+  - packages/wgpu
+  - packages/gpuweb_js
+  - packages/gpux
+  - packages/flutter_wgpu
+  - packages/flutter_webgpu
+  - packages/flutter_gpux
+  - packages/naga

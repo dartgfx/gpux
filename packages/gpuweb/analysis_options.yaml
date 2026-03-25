@@ -1,0 +1,57 @@
+include: all_lint_rules.yaml
+analyzer:
+  errors:
+    # Otherwise cause the import of all_lint_rules to warn because of some rules conflicts.
+    # We explicitly enabled even conflicting rules and are fixing the conflict
+    # in this file
+    included_file_warning: ignore
+    missing_return: error
+    parameter_assignments: error
+
+linter:
+  rules:
+    # --- Not yet ---
+    annotate_redeclares: false
+    document_ignores: false
+    specify_nonobvious_local_variable_types: false
+    specify_nonobvious_property_types: false
+
+    # --- Conflicting rule pairs (pick one) ---
+    # prefer_single_quotes wins
+    prefer_double_quotes: false
+    # omit_local_variable_types / omit_obvious_property_types win
+    always_specify_types: false
+    type_annotate_public_apis: false
+    # prefer_final_locals wins
+    unnecessary_final: false
+    # prefer_relative_imports wins
+    always_use_package_imports: false
+
+    # --- Personal preference / readability ---
+    use_setters_to_change_properties: false
+    avoid_bool_literals_in_conditional_expressions: false
+    always_put_control_body_on_new_line: false
+    cascade_invocations: false
+    prefer_expression_function_bodies: false
+    prefer_final_parameters: false
+    lines_longer_than_80_chars: false
+
+    # --- False positives ---
+    unsafe_variance: false
+    avoid_classes_with_only_static_members: false
+    one_member_abstracts: false
+    discarded_futures: false
+
+    # --- Low value / awkward ---
+    avoid_positional_boolean_parameters: false
+    no_adjacent_strings_in_list: false
+    no_leading_underscores_for_local_identifiers: false
+    diagnostic_describe_all_properties: false
+    flutter_style_todos: false
+
+    # --- Library / framework patterns ---
+    always_put_required_named_parameters_first: false
+    avoid_catches_without_on_clauses: false
+
+formatter:
+  trailing_commas: preserve

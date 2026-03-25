@@ -1,0 +1,19 @@
+name: flutter_webgpu
+description: Flutter widget for WebGPU rendering on the web.
+version: 0.1.0
+repository: https://github.com/dartgfx/gpux
+topics:
+  - gpu
+  - webgpu
+  - flutter
+
+resolution: workspace
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  gpuweb_js: ^0.1.0

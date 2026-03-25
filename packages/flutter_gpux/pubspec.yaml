@@ -1,0 +1,22 @@
+name: flutter_gpux
+description: Flutter widget for GPU rendering.
+version: 0.1.0
+repository: https://github.com/dartgfx/gpux
+topics:
+  - gpu
+  - flutter
+  - graphics
+  - webgpu
+
+resolution: workspace
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  gpux: ^0.1.0
+  flutter_wgpu: ^0.1.0
+  flutter_webgpu: ^0.1.0

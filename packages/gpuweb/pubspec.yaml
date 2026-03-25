@@ -1,0 +1,13 @@
+name: gpuweb
+description: WebGPU-spec GPU interfaces for Dart.
+version: 0.1.0
+repository: https://github.com/dartgfx/gpux
+topics:
+  - gpu
+  - webgpu
+  - graphics
+
+resolution: workspace
+environment:
+  sdk: ^3.5.0
+
