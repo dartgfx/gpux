@@ -15,14 +15,13 @@ final device = await adapter.requestDevice();
 Not every adapter supports the full spec (especially GLES fallbacks on old Android). Check before using optional features:
 
 ```dart
-final controller = GpuController();
-await controller.initialize();
-
-if (controller.supportsCompute) {
+final downlevel = queryDownlevel(adapter);
+if (downlevel.supports(GpuCapability.computeShaders)) {
   // safe to create compute pipelines
 }
 
-if (!controller.workarounds.brokenMipmapGeneration) {
+final workarounds = queryWorkarounds(adapter);
+if (!workarounds.brokenMipmapGeneration) {
   generateMipmaps(texture);
 }
 ```

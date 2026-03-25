@@ -1,5 +1,4 @@
 import 'package:gpux/gpux.dart';
-import 'package:gpux/internal.dart';
 
 /// Shared GPU device for [GpuView] widgets.
 ///

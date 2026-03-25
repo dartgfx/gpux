@@ -47,7 +47,7 @@ device.queue.submit([encoder.finish()]);
 
 ```dart
 final shader = device.createShaderModule(wgslSource);
-final pipeline = device.createComputePipeline(module: shader);
+final pipeline = device.createComputePipeline(module: shader, layout: null);
 
 final encoder = device.createCommandEncoder();
 final pass = encoder.beginComputePass();

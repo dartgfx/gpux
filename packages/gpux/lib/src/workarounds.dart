@@ -5,8 +5,8 @@
 /// time based on vendor ID and device string.
 ///
 /// ```dart
-/// // Via GpuController (typical usage):
-/// if (!controller.workarounds.brokenMipmapGeneration) {
+/// final workarounds = queryWorkarounds(adapter);
+/// if (!workarounds.brokenMipmapGeneration) {
 ///   generateMipmaps(texture);
 /// }
 /// ```

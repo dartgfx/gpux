@@ -29,8 +29,8 @@ enum GpuCapability {
 /// On native (wgpu), some GLES backends lack certain capabilities.
 ///
 /// ```dart
-/// // Via GpuController (typical usage):
-/// if (controller.downlevel.supports(GpuCapability.computeShaders)) {
+/// final downlevel = queryDownlevel(adapter);
+/// if (downlevel.supports(GpuCapability.computeShaders)) {
 ///   // Safe to use compute pipelines.
 /// }
 /// ```
