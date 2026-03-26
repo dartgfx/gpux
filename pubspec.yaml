@@ -13,3 +13,4 @@ workspace:
   - packages/flutter_webgpu
   - packages/flutter_gpux
   - packages/naga
+  - packages/gpu_types

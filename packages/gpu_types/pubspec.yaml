@@ -1,0 +1,16 @@
+name: gpu_types
+description: GPU type markers for Dart 
+version: 0.1.0
+repository: https://github.com/dartgfx/gpux
+topics:
+  - gpu
+  - graphics
+  - webgpu
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dev_dependencies:
+  test: any

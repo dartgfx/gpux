@@ -14,6 +14,7 @@ Cross-platform GPU packages for Dart and Flutter.
 | [flutter_webgpu](packages/flutter_webgpu/) | Flutter widget for WebGPU on web | [![pub](https://img.shields.io/pub/v/flutter_webgpu.svg)](https://pub.dev/packages/flutter_webgpu) |
 | [flutter_gpux](packages/flutter_gpux/) | Flutter GPU rendering widget | [![pub](https://img.shields.io/pub/v/flutter_gpux.svg)](https://pub.dev/packages/flutter_gpux) |
 | [naga](packages/naga/) | WGSL validation and compilation | [![pub](https://img.shields.io/pub/v/naga.svg)](https://pub.dev/packages/naga) |
+| [gpu_types](packages/gpu_types/) | GPU type markers (scalars, vectors, matrices) | [![pub](https://img.shields.io/pub/v/gpu_types.svg)](https://pub.dev/packages/gpu_types) |
 
 ## Quick start
 
