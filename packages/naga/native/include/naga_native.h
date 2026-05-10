@@ -41,6 +41,24 @@ typedef struct NagaValidationResult {
 } NagaValidationResult;
 
 /**
+ * Result of GLSL to WGSL translation.
+ */
+typedef struct NagaTranslateResult {
+  /**
+   * WGSL source code (null if translation failed)
+   */
+  char *wgsl;
+  /**
+   * Number of errors (0 = valid)
+   */
+  uint32_t error_count;
+  /**
+   * Pointer to array of NagaError (null if error_count == 0)
+   */
+  struct NagaError *errors;
+} NagaTranslateResult;
+
+/**
  * Validate WGSL source code.
  *
  * Returns a NagaValidationResult with error_count=0 if valid,
@@ -51,8 +69,24 @@ typedef struct NagaValidationResult {
  struct NagaValidationResult naga_validate_wgsl(const char *source, int32_t _source_len) ;
 
 /**
+ * Translate GLSL source code to WGSL.
+ *
+ * stage: 0 = vertex, 1 = fragment, 2 = compute.
+ * defines_json is a JSON object whose string keys and values become GLSL
+ * preprocessor defines.
+ *
+ * The caller must call naga_free_translate_result() to free the result.
+ */
+ struct NagaTranslateResult naga_glsl_to_wgsl(const char *source, uint32_t stage, const char *defines_json) ;
+
+/**
  * Free a validation result returned by naga_validate_wgsl.
  */
  void naga_free_validation_result(struct NagaValidationResult result) ;
+
+/**
+ * Free a translation result returned by naga_glsl_to_wgsl.
+ */
+ void naga_free_translate_result(struct NagaTranslateResult result) ;
 
 #endif  /* NAGA_NATIVE_H */

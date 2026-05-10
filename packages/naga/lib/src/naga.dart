@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -44,14 +45,59 @@ abstract final class Naga {
     }
   }
 
+  /// Translate GLSL source code to WGSL.
+  ///
+  /// [defines] are passed to naga's GLSL preprocessor.
+  static NagaTranslateResult translateGlslToWgsl(
+    String source,
+    NagaShaderStage stage, {
+    Map<String, String> defines = const {},
+  }) {
+    final sourceUtf8 = source.toNativeUtf8();
+    final definesUtf8 = jsonEncode(defines).toNativeUtf8();
+
+    try {
+      final result = ffi_naga.naga_glsl_to_wgsl(
+        sourceUtf8.cast(),
+        stage.index,
+        definesUtf8.cast(),
+      );
+      try {
+        return _convertTranslateResult(result);
+      } finally {
+        ffi_naga.naga_free_translate_result(result);
+      }
+    } finally {
+      calloc.free(definesUtf8);
+      calloc.free(sourceUtf8);
+    }
+  }
+
   static List<NagaError> _convertResult(ffi_naga.NagaValidationResult result) {
-    if (result.error_count == 0) {
+    return _convertErrors(result.error_count, result.errors);
+  }
+
+  static NagaTranslateResult _convertTranslateResult(
+    ffi_naga.NagaTranslateResult result,
+  ) {
+    final errors = _convertErrors(result.error_count, result.errors);
+    final wgsl = result.wgsl == nullptr
+        ? null
+        : result.wgsl.cast<Utf8>().toDartString();
+    return NagaTranslateResult(wgsl: wgsl, errors: errors);
+  }
+
+  static List<NagaError> _convertErrors(
+    int errorCount,
+    Pointer<ffi_naga.NagaError> errorsPtr,
+  ) {
+    if (errorCount == 0) {
       return const [];
     }
 
     final errors = <NagaError>[];
-    for (var i = 0; i < result.error_count; i++) {
-      final errorFfi = result.errors[i];
+    for (var i = 0; i < errorCount; i++) {
+      final errorFfi = errorsPtr[i];
       errors.add(
         NagaError(
           message: errorFfi.message.cast<Utf8>().toDartString(),
@@ -62,6 +108,22 @@ abstract final class Naga {
     }
     return errors;
   }
+}
+
+/// GLSL shader stage passed to naga.
+enum NagaShaderStage { vertex, fragment, compute }
+
+/// Result of GLSL to WGSL translation.
+class NagaTranslateResult {
+  /// Translated WGSL, or null when translation failed.
+  final String? wgsl;
+
+  /// Translation errors.
+  final List<NagaError> errors;
+
+  const NagaTranslateResult({required this.wgsl, required this.errors});
+
+  bool get isSuccess => errors.isEmpty && wgsl != null;
 }
 
 /// A validation error from naga.
@@ -77,11 +139,7 @@ class NagaError {
   /// Null if length is not available.
   final int? length;
 
-  const NagaError({
-    required this.message,
-    this.offset,
-    this.length,
-  });
+  const NagaError({required this.message, this.offset, this.length});
 
   @override
   String toString() {
