@@ -3,6 +3,17 @@
 use super::enums::*;
 use super::types::*;
 use crate::handle::*;
+use std::ffi::c_void;
+
+#[cfg(target_vendor = "apple")]
+use objc2::rc::Retained;
+#[cfg(target_vendor = "apple")]
+use objc2::runtime::{AnyObject, ProtocolObject};
+#[cfg(target_vendor = "apple")]
+use objc2_metal::{
+    MTLDevice, MTLPixelFormat, MTLStorageMode, MTLTexture, MTLTextureDescriptor,
+    MTLTextureType, MTLTextureUsage,
+};
 
 /// Convert a nullable C string pointer to an Option<&str> for wgpu labels.
 pub(crate) unsafe fn label_from_ptr(ptr: *const std::ffi::c_char) -> Option<&'static str> {
@@ -66,6 +77,100 @@ pub fn device_create_texture(
     into_handle(texture)
 }
 
+pub fn texture_create_from_metal_texture(
+    device: &wgpu::Device,
+    mtl_texture_ptr: *mut c_void,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> Result<WGPUTexture, String> {
+    #[cfg(target_vendor = "apple")]
+    {
+        if mtl_texture_ptr.is_null() {
+            return Err("Metal texture pointer is null".to_string());
+        }
+        if width == 0 || height == 0 {
+            return Err("texture width and height must be positive".to_string());
+        }
+
+        let metal_texture = unsafe {
+            Retained::retain(mtl_texture_ptr as *mut ProtocolObject<dyn MTLTexture>)
+                .ok_or_else(|| "Failed to retain Metal texture".to_string())?
+        };
+        import_metal_texture_to_wgpu(
+            device,
+            metal_texture,
+            texture_format_from_u32(format),
+            width,
+            height,
+            Some("External Metal texture"),
+        )
+        .map(into_handle)
+    }
+
+    #[cfg(not(target_vendor = "apple"))]
+    {
+        let _ = (device, mtl_texture_ptr, format, width, height);
+        Err("Metal texture import is only available on Apple platforms".to_string())
+    }
+}
+
+pub fn texture_create_from_iosurface(
+    device: &wgpu::Device,
+    io_surface_id: u32,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> Result<WGPUTexture, String> {
+    #[cfg(target_vendor = "apple")]
+    {
+        if io_surface_id == 0 {
+            return Err("IOSurface id must be non-zero".to_string());
+        }
+        if width == 0 || height == 0 {
+            return Err("texture width and height must be positive".to_string());
+        }
+
+        let format = texture_format_from_u32(format);
+        let iosurface = unsafe { IOSurfaceLookup(io_surface_id) };
+        if iosurface.is_null() {
+            return Err(format!("Failed to look up IOSurface id {io_surface_id}"));
+        }
+
+        let metal_device = get_metal_device(device)?;
+        let metal_texture =
+            create_metal_texture_from_iosurface(&metal_device, iosurface, format, width, height);
+        unsafe { CFRelease(iosurface as *const c_void); }
+        let metal_texture = metal_texture?;
+        import_metal_texture_to_wgpu(
+            device,
+            metal_texture,
+            format,
+            width,
+            height,
+            Some("External IOSurface texture"),
+        )
+        .map(into_handle)
+    }
+
+    #[cfg(not(target_vendor = "apple"))]
+    {
+        let _ = (device, io_surface_id, format, width, height);
+        Err("IOSurface texture import is only available on Apple platforms".to_string())
+    }
+}
+
+pub fn texture_create_from_ahardware_buffer(
+    device: &wgpu::Device,
+    ahb: *mut c_void,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> Result<WGPUTexture, String> {
+    let _ = (device, ahb, format, width, height);
+    Err("AHardwareBuffer texture import is not implemented yet".to_string())
+}
+
 pub fn texture_create_view(
     texture_handle: WGPUTexture,
     desc: Option<&WGPUTextureViewDescriptor>,
@@ -97,6 +202,159 @@ pub fn texture_create_view(
 pub fn texture_release(texture: WGPUTexture) {
     if texture == 0 { return; }
     unsafe { drop_handle::<wgpu::Texture>(texture); }
+}
+
+#[cfg(target_vendor = "apple")]
+#[repr(C)]
+struct __IOSurface(c_void);
+
+#[cfg(target_vendor = "apple")]
+type IOSurfaceRef = *mut __IOSurface;
+
+#[cfg(target_vendor = "apple")]
+#[link(name = "IOSurface", kind = "framework")]
+extern "C" {
+    fn IOSurfaceLookup(csid: u32) -> IOSurfaceRef;
+}
+
+#[cfg(target_vendor = "apple")]
+#[link(name = "CoreFoundation", kind = "framework")]
+extern "C" {
+    fn CFRelease(cf: *const c_void);
+}
+
+#[cfg(target_vendor = "apple")]
+fn get_metal_device(
+    device: &wgpu::Device,
+) -> Result<Retained<ProtocolObject<dyn MTLDevice>>, String> {
+    unsafe {
+        let hal_guard = device
+            .as_hal::<wgpu::hal::api::Metal>()
+            .ok_or_else(|| "Failed to get Metal device from wgpu".to_string())?;
+
+        Ok(hal_guard.raw_device().clone())
+    }
+}
+
+#[cfg(target_vendor = "apple")]
+fn create_metal_texture_from_iosurface(
+    device: &ProtocolObject<dyn MTLDevice>,
+    iosurface: IOSurfaceRef,
+    format: wgpu::TextureFormat,
+    width: u32,
+    height: u32,
+) -> Result<Retained<ProtocolObject<dyn MTLTexture>>, String> {
+    use objc2::msg_send;
+
+    let desc = MTLTextureDescriptor::new();
+    unsafe {
+        desc.setTextureType(MTLTextureType::Type2D);
+        desc.setPixelFormat(metal_pixel_format_from_wgpu_format(format)?);
+        desc.setWidth(width as usize);
+        desc.setHeight(height as usize);
+        desc.setDepth(1);
+        desc.setMipmapLevelCount(1);
+        desc.setSampleCount(1);
+        desc.setArrayLength(1);
+        desc.setStorageMode(MTLStorageMode::Shared);
+        desc.setUsage(MTLTextureUsage::ShaderRead | MTLTextureUsage::RenderTarget);
+    }
+
+    let iosurface_ptr = iosurface as *mut AnyObject;
+    let texture_ptr: *mut AnyObject = unsafe {
+        let device_ptr = (device as *const _ as *mut AnyObject).as_ref().unwrap();
+        let desc_ptr = (&*desc as *const _ as *mut AnyObject).as_ref().unwrap();
+        msg_send![device_ptr, newTextureWithDescriptor: desc_ptr, iosurface: iosurface_ptr, plane: 0usize]
+    };
+
+    if texture_ptr.is_null() {
+        return Err("Failed to create Metal texture from IOSurface".to_string());
+    }
+
+    unsafe {
+        Retained::from_raw(texture_ptr as *mut ProtocolObject<dyn MTLTexture>)
+            .ok_or_else(|| "Failed to retain Metal texture".to_string())
+    }
+}
+
+#[cfg(target_vendor = "apple")]
+fn import_metal_texture_to_wgpu(
+    device: &wgpu::Device,
+    metal_texture: Retained<ProtocolObject<dyn MTLTexture>>,
+    format: wgpu::TextureFormat,
+    width: u32,
+    height: u32,
+    label: Option<&'static str>,
+) -> Result<wgpu::Texture, String> {
+    let raw_type = metal_texture.textureType();
+    let array_layers = (metal_texture.arrayLength() as u32).max(1);
+    let mip_levels = (metal_texture.mipmapLevelCount() as u32).max(1);
+    let sample_count = (metal_texture.sampleCount() as u32).max(1);
+    let usage = metal_usage_to_wgpu_usage(metal_texture.usage());
+
+    let desc = wgpu::TextureDescriptor {
+        label,
+        size: wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: array_layers,
+        },
+        mip_level_count: mip_levels,
+        sample_count,
+        dimension: wgpu::TextureDimension::D2,
+        format,
+        usage,
+        view_formats: &[],
+    };
+
+    unsafe {
+        let hal_texture = wgpu::hal::metal::Device::texture_from_raw(
+            metal_texture,
+            format,
+            raw_type,
+            array_layers,
+            mip_levels,
+            wgpu::hal::CopyExtent {
+                width,
+                height,
+                depth: 1,
+            },
+        );
+
+        Ok(device.create_texture_from_hal::<wgpu::hal::api::Metal>(hal_texture, &desc))
+    }
+}
+
+#[cfg(target_vendor = "apple")]
+fn metal_usage_to_wgpu_usage(metal_usage: MTLTextureUsage) -> wgpu::TextureUsages {
+    let mut usage = wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC;
+
+    if metal_usage.contains(MTLTextureUsage::ShaderWrite) {
+        usage |= wgpu::TextureUsages::STORAGE_BINDING;
+    }
+    if metal_usage.contains(MTLTextureUsage::RenderTarget) {
+        usage |= wgpu::TextureUsages::RENDER_ATTACHMENT;
+    }
+    if metal_usage.contains(MTLTextureUsage::ShaderRead) {
+        usage |= wgpu::TextureUsages::TEXTURE_BINDING;
+    }
+
+    usage
+}
+
+#[cfg(target_vendor = "apple")]
+fn metal_pixel_format_from_wgpu_format(
+    format: wgpu::TextureFormat,
+) -> Result<MTLPixelFormat, String> {
+    match format {
+        wgpu::TextureFormat::Rgba8Unorm => Ok(MTLPixelFormat::RGBA8Unorm),
+        wgpu::TextureFormat::Rgba8UnormSrgb => Ok(MTLPixelFormat::RGBA8Unorm_sRGB),
+        wgpu::TextureFormat::Bgra8Unorm => Ok(MTLPixelFormat::BGRA8Unorm),
+        wgpu::TextureFormat::Bgra8UnormSrgb => Ok(MTLPixelFormat::BGRA8Unorm_sRGB),
+        other => Err(format!(
+            "IOSurface import only supports RGBA8/BGRA8 formats, got {other:?}"
+        )),
+    }
 }
 
 pub fn texture_view_release(view: WGPUTextureView) {

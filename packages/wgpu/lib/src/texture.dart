@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:gpuweb/gpuweb.dart';
 import '../wgpu_ffi.dart' show wgpuLastError;
+import 'device.dart';
 import 'ffi/bindings_generated.dart' as ffi;
 import 'ffi/enum_ffi.dart';
 import 'resource.dart';
@@ -61,6 +62,115 @@ class WgpuTexture extends WgpuNativeResource implements GpuTexture {
     GpuTextureViewDimension? textureBindingViewDimension,
   }) : _textureBindingViewDimension = textureBindingViewDimension,
        super(handle, _fin);
+
+  /// Imports an existing Metal texture into this wgpu device.
+  factory WgpuTexture.fromMetalTexture(
+    WgpuDevice device,
+    Pointer<Void> mtlTexture,
+    GpuTextureFormat format,
+    int width,
+    int height,
+  ) {
+    _validateExternalTexture(width, height);
+    if (mtlTexture == nullptr) {
+      throw ArgumentError('mtlTexture must not be null');
+    }
+
+    final handle = ffi.wgpun_TextureCreateFromMetalTexture(
+      device.handle,
+      mtlTexture,
+      format.ffiValue,
+      width,
+      height,
+    );
+    return _fromExternalHandle(handle, 'Metal texture', format, width, height);
+  }
+
+  /// Imports an IOSurface-backed Metal texture into this wgpu device.
+  factory WgpuTexture.fromIOSurface(
+    WgpuDevice device,
+    int ioSurfaceId,
+    GpuTextureFormat format,
+    int width,
+    int height,
+  ) {
+    _validateExternalTexture(width, height);
+    if (ioSurfaceId <= 0) {
+      throw ArgumentError('ioSurfaceId must be positive');
+    }
+
+    final handle = ffi.wgpun_TextureCreateFromIOSurface(
+      device.handle,
+      ioSurfaceId,
+      format.ffiValue,
+      width,
+      height,
+    );
+    return _fromExternalHandle(
+      handle,
+      'IOSurface texture',
+      format,
+      width,
+      height,
+    );
+  }
+
+  /// Imports an Android hardware buffer into this wgpu device.
+  factory WgpuTexture.fromAHardwareBuffer(
+    WgpuDevice device,
+    Pointer<Void> ahb,
+    GpuTextureFormat format,
+    int width,
+    int height,
+  ) {
+    _validateExternalTexture(width, height);
+    if (ahb == nullptr) {
+      throw ArgumentError('ahb must not be null');
+    }
+
+    final handle = ffi.wgpun_TextureCreateFromAHardwareBuffer(
+      device.handle,
+      ahb,
+      format.ffiValue,
+      width,
+      height,
+    );
+    return _fromExternalHandle(
+      handle,
+      'AHardwareBuffer texture',
+      format,
+      width,
+      height,
+    );
+  }
+
+  static void _validateExternalTexture(int width, int height) {
+    if (width <= 0) throw ArgumentError('width must be positive');
+    if (height <= 0) throw ArgumentError('height must be positive');
+  }
+
+  static WgpuTexture _fromExternalHandle(
+    int handle,
+    String source,
+    GpuTextureFormat format,
+    int width,
+    int height,
+  ) {
+    if (handle == 0) {
+      throw StateError('Failed to import $source: ${wgpuLastError()}');
+    }
+
+    return WgpuTexture.internal(
+      handle,
+      width: width,
+      height: height,
+      depthOrArrayLayers: 1,
+      format: format,
+      usage: GpuTextureUsage.textureBinding | GpuTextureUsage.copySrc,
+      mipLevelCount: 1,
+      label: source,
+    );
+  }
 
   int get handle => nativeHandle;
 

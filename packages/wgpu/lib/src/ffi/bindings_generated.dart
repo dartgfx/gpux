@@ -218,6 +218,57 @@ external int wgpun_DeviceCreateTexture(
 );
 
 @ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Pointer<ffi.Void>,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+  )
+>()
+external int wgpun_TextureCreateFromMetalTexture(
+  int device,
+  ffi.Pointer<ffi.Void> mtl_texture_ptr,
+  int format,
+  int width,
+  int height,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+  )
+>()
+external int wgpun_TextureCreateFromIOSurface(
+  int device,
+  int io_surface_id,
+  int format,
+  int width,
+  int height,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Pointer<ffi.Void>,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+  )
+>()
+external int wgpun_TextureCreateFromAHardwareBuffer(
+  int device,
+  ffi.Pointer<ffi.Void> ahb,
+  int format,
+  int width,
+  int height,
+);
+
+@ffi.Native<
   ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUTextureViewDescriptor>)
 >()
 external int wgpun_TextureCreateView(

@@ -4,13 +4,14 @@
 // All function bodies are wrapped in ffi_catch! so wgpu-core panics
 // (e.g. stale TextureView handles) are caught instead of aborting.
 
+use std::ffi::c_void;
 use std::sync::Arc;
 
 use crate::api::resources::{self, label_from_ptr};
 use crate::api::types::*;
 use crate::api::{commands, transfer};
 use crate::handle::*;
-use crate::{ffi_catch, LAST_ERROR};
+use crate::{ffi_catch, set_error, LAST_ERROR};
 
 // =============================================================================
 // BUFFER
@@ -93,6 +94,87 @@ pub extern "C" fn wgpuDeviceCreateTexture(
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         let desc = unsafe { &*descriptor };
         resources::device_create_texture(&entry.device, desc)
+    })
+}
+
+#[export_name = "wgpun_TextureCreateFromMetalTexture"]
+pub extern "C" fn wgpuTextureCreateFromMetalTexture(
+    device: WGPUDevice,
+    mtl_texture_ptr: *mut c_void,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> WGPUTexture {
+    if device == 0 || mtl_texture_ptr.is_null() { return 0; }
+    ffi_catch!(0, {
+        let entry = unsafe { deref_handle::<DeviceEntry>(device) };
+        match resources::texture_create_from_metal_texture(
+            &entry.device,
+            mtl_texture_ptr,
+            format,
+            width,
+            height,
+        ) {
+            Ok(texture) => texture,
+            Err(error) => {
+                set_error(error);
+                0
+            }
+        }
+    })
+}
+
+#[export_name = "wgpun_TextureCreateFromIOSurface"]
+pub extern "C" fn wgpuTextureCreateFromIOSurface(
+    device: WGPUDevice,
+    io_surface_id: u32,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> WGPUTexture {
+    if device == 0 || io_surface_id == 0 { return 0; }
+    ffi_catch!(0, {
+        let entry = unsafe { deref_handle::<DeviceEntry>(device) };
+        match resources::texture_create_from_iosurface(
+            &entry.device,
+            io_surface_id,
+            format,
+            width,
+            height,
+        ) {
+            Ok(texture) => texture,
+            Err(error) => {
+                set_error(error);
+                0
+            }
+        }
+    })
+}
+
+#[export_name = "wgpun_TextureCreateFromAHardwareBuffer"]
+pub extern "C" fn wgpuTextureCreateFromAHardwareBuffer(
+    device: WGPUDevice,
+    ahb: *mut c_void,
+    format: u32,
+    width: u32,
+    height: u32,
+) -> WGPUTexture {
+    if device == 0 || ahb.is_null() { return 0; }
+    ffi_catch!(0, {
+        let entry = unsafe { deref_handle::<DeviceEntry>(device) };
+        match resources::texture_create_from_ahardware_buffer(
+            &entry.device,
+            ahb,
+            format,
+            width,
+            height,
+        ) {
+            Ok(texture) => texture,
+            Err(error) => {
+                set_error(error);
+                0
+            }
+        }
     })
 }
 

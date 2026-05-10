@@ -583,6 +583,30 @@ WGPUTexture wgpun_DeviceCreateTexture(WGPUDevice device,
 ;
 
 
+WGPUTexture wgpun_TextureCreateFromMetalTexture(WGPUDevice device,
+                                                void *mtl_texture_ptr,
+                                                uint32_t format,
+                                                uint32_t width,
+                                                uint32_t height)
+;
+
+
+WGPUTexture wgpun_TextureCreateFromIOSurface(WGPUDevice device,
+                                             uint32_t io_surface_id,
+                                             uint32_t format,
+                                             uint32_t width,
+                                             uint32_t height)
+;
+
+
+WGPUTexture wgpun_TextureCreateFromAHardwareBuffer(WGPUDevice device,
+                                                   void *ahb,
+                                                   uint32_t format,
+                                                   uint32_t width,
+                                                   uint32_t height)
+;
+
+
 WGPUTextureView wgpun_TextureCreateView(WGPUTexture texture,
                                         const struct WGPUTextureViewDescriptor *descriptor)
 ;
