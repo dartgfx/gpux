@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use crate::api::resources::label_from_ptr;
 use crate::api::types::*;
 use crate::handle::*;
-use crate::{clear_error, ffi_catch, set_error, LAST_ERROR, wgpu_get_last_error};
+use crate::{clear_error, ffi_catch, set_error, wgpu_get_last_error, LAST_ERROR};
 
 // =============================================================================
 // FEATURE BITMASK MAPPING
@@ -59,8 +59,10 @@ fn limits_from_ffi(l: &WGPUDeviceLimits) -> wgpu::Limits {
         max_texture_array_layers: l.max_texture_array_layers,
         max_bind_groups: l.max_bind_groups,
         max_bindings_per_bind_group: l.max_bindings_per_bind_group,
-        max_dynamic_uniform_buffers_per_pipeline_layout: l.max_dynamic_uniform_buffers_per_pipeline_layout,
-        max_dynamic_storage_buffers_per_pipeline_layout: l.max_dynamic_storage_buffers_per_pipeline_layout,
+        max_dynamic_uniform_buffers_per_pipeline_layout: l
+            .max_dynamic_uniform_buffers_per_pipeline_layout,
+        max_dynamic_storage_buffers_per_pipeline_layout: l
+            .max_dynamic_storage_buffers_per_pipeline_layout,
         max_sampled_textures_per_shader_stage: l.max_sampled_textures_per_shader_stage,
         max_samplers_per_shader_stage: l.max_samplers_per_shader_stage,
         max_storage_buffers_per_shader_stage: l.max_storage_buffers_per_shader_stage,
@@ -147,8 +149,10 @@ fn limits_to_ffi(l: &wgpu::Limits) -> WGPUDeviceLimits {
         max_bind_groups: l.max_bind_groups,
         max_bind_groups_plus_vertex_buffers: l.max_bind_groups + l.max_vertex_buffers,
         max_bindings_per_bind_group: l.max_bindings_per_bind_group,
-        max_dynamic_uniform_buffers_per_pipeline_layout: l.max_dynamic_uniform_buffers_per_pipeline_layout,
-        max_dynamic_storage_buffers_per_pipeline_layout: l.max_dynamic_storage_buffers_per_pipeline_layout,
+        max_dynamic_uniform_buffers_per_pipeline_layout: l
+            .max_dynamic_uniform_buffers_per_pipeline_layout,
+        max_dynamic_storage_buffers_per_pipeline_layout: l
+            .max_dynamic_storage_buffers_per_pipeline_layout,
         max_sampled_textures_per_shader_stage: l.max_sampled_textures_per_shader_stage,
         max_samplers_per_shader_stage: l.max_samplers_per_shader_stage,
         max_storage_buffers_per_shader_stage: l.max_storage_buffers_per_shader_stage,
@@ -182,9 +186,7 @@ fn limits_to_ffi(l: &wgpu::Limits) -> WGPUDeviceLimits {
 /// Create a wgpu instance.
 /// Returns instance handle, or 0 on failure.
 #[export_name = "wgpun_CreateInstance"]
-pub extern "C" fn wgpun_CreateInstance(
-    descriptor: *const WGPUInstanceDescriptor,
-) -> WGPUInstance {
+pub extern "C" fn wgpun_CreateInstance(descriptor: *const WGPUInstanceDescriptor) -> WGPUInstance {
     #[cfg(target_os = "android")]
     {
         android_logger::init_once(
@@ -215,7 +217,11 @@ pub extern "C" fn wgpun_CreateInstance(
             }
         }
 
-        log::info!("Creating wgpu instance with backends: {:?}, flags: {:?}", backends, flags);
+        log::info!(
+            "Creating wgpu instance with backends: {:?}, flags: {:?}",
+            backends,
+            flags
+        );
 
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends,
@@ -230,15 +236,23 @@ pub extern "C" fn wgpun_CreateInstance(
 /// Release an instance.
 #[export_name = "wgpun_InstanceRelease"]
 pub extern "C" fn wgpun_InstanceRelease(instance: WGPUInstance) {
-    if instance == 0 { return; }
-    ffi_catch!((), { unsafe { drop_handle::<wgpu::Instance>(instance); } })
+    if instance == 0 {
+        return;
+    }
+    ffi_catch!((), {
+        unsafe {
+            drop_handle::<wgpu::Instance>(instance);
+        }
+    })
 }
 
 /// Get WGSL language features supported by this instance.
 /// Returns a bitmask matching GpuWgslLanguageFeatureName enum order.
 #[export_name = "wgpun_InstanceGetWGSLLanguageFeatures"]
 pub extern "C" fn wgpun_InstanceGetWGSLLanguageFeatures(instance: WGPUInstance) -> u32 {
-    if instance == 0 { return 0; }
+    if instance == 0 {
+        return 0;
+    }
     ffi_catch!(0, {
         let wgpu_instance = unsafe { deref_handle::<wgpu::Instance>(instance) };
 
@@ -293,17 +307,18 @@ pub extern "C" fn wgpun_InstanceRequestAdapter(
     };
 
     ffi_catch!(0, {
-        let adapter = match pollster::block_on(wgpu_instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference,
-            compatible_surface: None,
-            force_fallback_adapter: force_fallback,
-        })) {
-            Ok(a) => a,
-            Err(e) => {
-                set_error(format!("Failed to request adapter: {}", e));
-                return 0;
-            }
-        };
+        let adapter =
+            match pollster::block_on(wgpu_instance.request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference,
+                compatible_surface: None,
+                force_fallback_adapter: force_fallback,
+            })) {
+                Ok(a) => a,
+                Err(e) => {
+                    set_error(format!("Failed to request adapter: {}", e));
+                    return 0;
+                }
+            };
 
         log::info!("Adapter requested: {:?}", adapter.get_info());
 
@@ -318,8 +333,14 @@ pub extern "C" fn wgpun_InstanceRequestAdapter(
 /// Release an adapter.
 #[export_name = "wgpun_AdapterRelease"]
 pub extern "C" fn wgpun_AdapterRelease(adapter: WGPUAdapter) {
-    if adapter == 0 { return; }
-    ffi_catch!((), { unsafe { drop_handle::<AdapterEntry>(adapter); } })
+    if adapter == 0 {
+        return;
+    }
+    ffi_catch!((), {
+        unsafe {
+            drop_handle::<AdapterEntry>(adapter);
+        }
+    })
 }
 
 /// Get adapter info.
@@ -339,7 +360,9 @@ pub extern "C" fn wgpun_AdapterGetInfo(adapter: WGPUAdapter) -> WGPUAdapterInfo 
         driver_api_version: 0,
     };
 
-    if adapter == 0 { return empty(); }
+    if adapter == 0 {
+        return empty();
+    }
 
     ffi_catch!(empty(), {
         let entry = unsafe { deref_handle::<AdapterEntry>(adapter) };
@@ -372,8 +395,15 @@ pub extern "C" fn wgpun_AdapterGetInfo(adapter: WGPUAdapter) -> WGPUAdapterInfo 
         // Extract Vulkan API version from HAL physical device properties.
         let driver_api_version = if info.backend == wgpu::Backend::Vulkan {
             unsafe {
-                entry.adapter.as_hal::<wgpu::hal::api::Vulkan>()
-                    .map(|hal_adapter| hal_adapter.physical_device_capabilities().properties().api_version)
+                entry
+                    .adapter
+                    .as_hal::<wgpu::hal::api::Vulkan>()
+                    .map(|hal_adapter| {
+                        hal_adapter
+                            .physical_device_capabilities()
+                            .properties()
+                            .api_version
+                    })
                     .unwrap_or(0)
             }
         } else {
@@ -397,7 +427,9 @@ pub extern "C" fn wgpun_AdapterGetInfo(adapter: WGPUAdapter) -> WGPUAdapterInfo 
 /// Get adapter limits.
 #[export_name = "wgpun_AdapterGetLimits"]
 pub extern "C" fn wgpun_AdapterGetLimits(adapter: WGPUAdapter) -> WGPUDeviceLimits {
-    if adapter == 0 { return zero_limits(); }
+    if adapter == 0 {
+        return zero_limits();
+    }
     ffi_catch!(zero_limits(), {
         let entry = unsafe { deref_handle::<AdapterEntry>(adapter) };
         let l = entry.adapter.limits();
@@ -408,10 +440,17 @@ pub extern "C" fn wgpun_AdapterGetLimits(adapter: WGPUAdapter) -> WGPUDeviceLimi
 /// Get adapter downlevel capability flags as a raw u64 bitmask.
 #[export_name = "wgpun_AdapterGetDownlevelFlags"]
 pub extern "C" fn wgpun_AdapterGetDownlevelFlags(adapter: WGPUAdapter) -> u64 {
-    if adapter == 0 { return 0; }
+    if adapter == 0 {
+        return 0;
+    }
     ffi_catch!(0, {
         let entry = unsafe { deref_handle::<AdapterEntry>(adapter) };
-        entry.adapter.get_downlevel_capabilities().flags.bits().into()
+        entry
+            .adapter
+            .get_downlevel_capabilities()
+            .flags
+            .bits()
+            .into()
     })
 }
 
@@ -419,7 +458,9 @@ pub extern "C" fn wgpun_AdapterGetDownlevelFlags(adapter: WGPUAdapter) -> u64 {
 /// Bit positions match GpuFeatureName enum order.
 #[export_name = "wgpun_AdapterGetFeatures"]
 pub extern "C" fn wgpun_AdapterGetFeatures(adapter: WGPUAdapter) -> u32 {
-    if adapter == 0 { return 1; } // just coreFeaturesAndLimits
+    if adapter == 0 {
+        return 1;
+    } // just coreFeaturesAndLimits
     ffi_catch!(1, {
         let entry = unsafe { deref_handle::<AdapterEntry>(adapter) };
         features_to_bitmask(entry.adapter.features())
@@ -480,22 +521,21 @@ pub extern "C" fn wgpun_AdapterRequestDevice(
             None
         };
 
-        let (device, queue) = match pollster::block_on(entry.adapter.request_device(
-            &wgpu::DeviceDescriptor {
+        let (device, queue) =
+            match pollster::block_on(entry.adapter.request_device(&wgpu::DeviceDescriptor {
                 label: device_label.or(Some("wgpu_native_device")),
                 required_features: features,
                 required_limits: limits,
                 memory_hints: wgpu::MemoryHints::Performance,
                 trace: wgpu::Trace::Off,
                 experimental_features: wgpu::ExperimentalFeatures::default(),
-            },
-        )) {
-            Ok((d, q)) => (d, q),
-            Err(e) => {
-                set_error(format!("Failed to request device: {}", e));
-                return 0;
-            }
-        };
+            })) {
+                Ok((d, q)) => (d, q),
+                Err(e) => {
+                    set_error(format!("Failed to request device: {}", e));
+                    return 0;
+                }
+            };
 
         let errors = Arc::new(Mutex::new(Vec::<CString>::new()));
         let errors_clone = Arc::clone(&errors);
@@ -519,15 +559,23 @@ pub extern "C" fn wgpun_AdapterRequestDevice(
 /// Release a device.
 #[export_name = "wgpun_DeviceRelease"]
 pub extern "C" fn wgpun_DeviceRelease(device: WGPUDevice) {
-    if device == 0 { return; }
-    ffi_catch!((), { unsafe { drop_handle::<DeviceEntry>(device); } })
+    if device == 0 {
+        return;
+    }
+    ffi_catch!((), {
+        unsafe {
+            drop_handle::<DeviceEntry>(device);
+        }
+    })
 }
 
 /// Get the queue for a device.
 /// Returns queue handle (a heap-allocated Arc<Queue> clone).
 #[export_name = "wgpun_DeviceGetQueue"]
 pub extern "C" fn wgpun_DeviceGetQueue(device: WGPUDevice) -> WGPUQueue {
-    if device == 0 { return 0; }
+    if device == 0 {
+        return 0;
+    }
     ffi_catch!(0, {
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         into_handle(entry.queue.clone())
@@ -537,7 +585,9 @@ pub extern "C" fn wgpun_DeviceGetQueue(device: WGPUDevice) -> WGPUQueue {
 /// Poll a device for completed work.
 #[export_name = "wgpun_DevicePoll"]
 pub extern "C" fn wgpun_DevicePoll(device: WGPUDevice, wait: u8) {
-    if device == 0 { return; }
+    if device == 0 {
+        return;
+    }
     ffi_catch!((), {
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         let poll_type = if wait != 0 {
@@ -553,7 +603,9 @@ pub extern "C" fn wgpun_DevicePoll(device: WGPUDevice, wait: u8) {
 /// Bit positions match GpuFeatureName enum order.
 #[export_name = "wgpun_DeviceGetFeatures"]
 pub extern "C" fn wgpun_DeviceGetFeatures(device: WGPUDevice) -> u32 {
-    if device == 0 { return 1; }
+    if device == 0 {
+        return 1;
+    }
     ffi_catch!(1, {
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         features_to_bitmask(entry.device.features())
@@ -563,7 +615,9 @@ pub extern "C" fn wgpun_DeviceGetFeatures(device: WGPUDevice) -> u32 {
 /// Get device limits.
 #[export_name = "wgpun_DeviceGetLimits"]
 pub extern "C" fn wgpun_DeviceGetLimits(device: WGPUDevice) -> WGPUDeviceLimits {
-    if device == 0 { return zero_limits(); }
+    if device == 0 {
+        return zero_limits();
+    }
     ffi_catch!(zero_limits(), {
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         let l = entry.device.limits();
@@ -579,7 +633,9 @@ pub extern "C" fn wgpun_DeviceGetLimits(device: WGPUDevice) -> WGPUDeviceLimits 
 /// Returns null if the error queue is empty.
 #[export_name = "wgpun_DevicePopError"]
 pub extern "C" fn wgpun_DevicePopError(device: WGPUDevice) -> *const c_char {
-    if device == 0 { return std::ptr::null(); }
+    if device == 0 {
+        return std::ptr::null();
+    }
     ffi_catch!(std::ptr::null(), {
         let errors_arc = {
             let entry = unsafe { deref_handle::<DeviceEntry>(device) };
@@ -610,7 +666,9 @@ thread_local! {
 /// filter: 1 = Validation, 2 = OutOfMemory, 3 = Internal
 #[export_name = "wgpun_DevicePushErrorScope"]
 pub extern "C" fn wgpun_DevicePushErrorScope(device: WGPUDevice, filter: u32) {
-    if device == 0 { return; }
+    if device == 0 {
+        return;
+    }
     ffi_catch!((), {
         let entry = unsafe { deref_handle::<DeviceEntry>(device) };
         let wgpu_filter = match filter {
@@ -629,7 +687,9 @@ pub extern "C" fn wgpun_DevicePushErrorScope(device: WGPUDevice, filter: u32) {
 /// If an error was captured, the message is available via wgpun_DevicePopScopeError.
 #[export_name = "wgpun_DevicePopErrorScope"]
 pub extern "C" fn wgpun_DevicePopErrorScope(device: WGPUDevice) -> u32 {
-    if device == 0 { return 0; }
+    if device == 0 {
+        return 0;
+    }
     ffi_catch!(0, {
         let guard = ERROR_SCOPE_STACK.with(|stack| stack.borrow_mut().pop());
         let guard = match guard {

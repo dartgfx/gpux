@@ -85,34 +85,118 @@ pub(crate) fn texture_format_from_u32(format: u32) -> wgpu::TextureFormat {
         65 => wgpu::TextureFormat::EacRg11Unorm,
         66 => wgpu::TextureFormat::EacRg11Snorm,
         // ASTC compressed formats
-        67 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B4x4, channel: wgpu::AstcChannel::Unorm },
-        68 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B4x4, channel: wgpu::AstcChannel::UnormSrgb },
-        69 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B5x4, channel: wgpu::AstcChannel::Unorm },
-        70 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B5x4, channel: wgpu::AstcChannel::UnormSrgb },
-        71 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B5x5, channel: wgpu::AstcChannel::Unorm },
-        72 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B5x5, channel: wgpu::AstcChannel::UnormSrgb },
-        73 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B6x5, channel: wgpu::AstcChannel::Unorm },
-        74 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B6x5, channel: wgpu::AstcChannel::UnormSrgb },
-        75 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B6x6, channel: wgpu::AstcChannel::Unorm },
-        76 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B6x6, channel: wgpu::AstcChannel::UnormSrgb },
-        77 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x5, channel: wgpu::AstcChannel::Unorm },
-        78 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x5, channel: wgpu::AstcChannel::UnormSrgb },
-        79 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x6, channel: wgpu::AstcChannel::Unorm },
-        80 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x6, channel: wgpu::AstcChannel::UnormSrgb },
-        81 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x8, channel: wgpu::AstcChannel::Unorm },
-        82 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B8x8, channel: wgpu::AstcChannel::UnormSrgb },
-        83 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x5, channel: wgpu::AstcChannel::Unorm },
-        84 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x5, channel: wgpu::AstcChannel::UnormSrgb },
-        85 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x6, channel: wgpu::AstcChannel::Unorm },
-        86 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x6, channel: wgpu::AstcChannel::UnormSrgb },
-        87 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x8, channel: wgpu::AstcChannel::Unorm },
-        88 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x8, channel: wgpu::AstcChannel::UnormSrgb },
-        89 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x10, channel: wgpu::AstcChannel::Unorm },
-        90 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B10x10, channel: wgpu::AstcChannel::UnormSrgb },
-        91 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B12x10, channel: wgpu::AstcChannel::Unorm },
-        92 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B12x10, channel: wgpu::AstcChannel::UnormSrgb },
-        93 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B12x12, channel: wgpu::AstcChannel::Unorm },
-        94 => wgpu::TextureFormat::Astc { block: wgpu::AstcBlock::B12x12, channel: wgpu::AstcChannel::UnormSrgb },
+        67 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B4x4,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        68 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B4x4,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        69 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B5x4,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        70 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B5x4,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        71 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B5x5,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        72 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B5x5,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        73 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B6x5,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        74 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B6x5,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        75 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B6x6,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        76 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B6x6,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        77 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x5,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        78 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x5,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        79 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x6,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        80 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x6,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        81 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x8,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        82 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B8x8,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        83 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x5,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        84 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x5,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        85 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x6,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        86 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x6,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        87 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x8,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        88 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x8,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        89 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x10,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        90 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B10x10,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        91 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B12x10,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        92 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B12x10,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
+        93 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B12x12,
+            channel: wgpu::AstcChannel::Unorm,
+        },
+        94 => wgpu::TextureFormat::Astc {
+            block: wgpu::AstcBlock::B12x12,
+            channel: wgpu::AstcChannel::UnormSrgb,
+        },
         _ => wgpu::TextureFormat::Rgba8Unorm,
     }
 }
@@ -165,9 +249,15 @@ pub(crate) fn mipmap_filter_mode_from_u32(mode: u32) -> wgpu::MipmapFilterMode {
 
 pub(crate) fn shader_stages_from_u32(visibility: u32) -> wgpu::ShaderStages {
     let mut stages = wgpu::ShaderStages::empty();
-    if visibility & 1 != 0 { stages |= wgpu::ShaderStages::VERTEX; }
-    if visibility & 2 != 0 { stages |= wgpu::ShaderStages::FRAGMENT; }
-    if visibility & 4 != 0 { stages |= wgpu::ShaderStages::COMPUTE; }
+    if visibility & 1 != 0 {
+        stages |= wgpu::ShaderStages::VERTEX;
+    }
+    if visibility & 2 != 0 {
+        stages |= wgpu::ShaderStages::FRAGMENT;
+    }
+    if visibility & 4 != 0 {
+        stages |= wgpu::ShaderStages::COMPUTE;
+    }
     stages
 }
 

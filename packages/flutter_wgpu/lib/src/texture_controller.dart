@@ -143,7 +143,9 @@ class WgpuTextureController extends ChangeNotifier {
 
   Future<void> _initializeApple() async {
     _surface = WgpuSurface.create(
-      deviceHandle: _deviceHandle, width: _width, height: _height,
+      deviceHandle: _deviceHandle,
+      width: _width,
+      height: _height,
     );
 
     // Get engine handle for direct FFI path (bypasses MethodChannel)
@@ -165,7 +167,9 @@ class WgpuTextureController extends ChangeNotifier {
 
   Future<void> _initializePixelBuffer() async {
     _surface = WgpuSurface.create(
-      deviceHandle: _deviceHandle, width: _width, height: _height,
+      deviceHandle: _deviceHandle,
+      width: _width,
+      height: _height,
     );
 
     // Try D3D11 shared handle first (GPU surface texture)

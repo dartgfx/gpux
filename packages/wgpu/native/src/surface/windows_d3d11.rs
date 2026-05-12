@@ -18,14 +18,14 @@ use windows::{
             Direct3D11::{
                 D3D11CreateDevice, ID3D11Device, ID3D11DeviceContext, ID3D11Resource,
                 ID3D11Texture2D, D3D11_BIND_RENDER_TARGET, D3D11_BIND_SHADER_RESOURCE,
-                D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_RESOURCE_MISC_SHARED,
-                D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC, D3D11_USAGE_DEFAULT,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_RESOURCE_MISC_SHARED, D3D11_SDK_VERSION,
+                D3D11_TEXTURE2D_DESC, D3D11_USAGE_DEFAULT,
             },
             Direct3D11on12::{D3D11On12CreateDevice, ID3D11On12Device},
             Direct3D12::{ID3D12CommandQueue, ID3D12Resource},
             Dxgi::{
-                CreateDXGIFactory1, IDXGIAdapter1, IDXGIFactory1, IDXGIResource,
-                Common::DXGI_FORMAT_B8G8R8A8_UNORM,
+                Common::DXGI_FORMAT_B8G8R8A8_UNORM, CreateDXGIFactory1, IDXGIAdapter1,
+                IDXGIFactory1, IDXGIResource,
             },
         },
     },
@@ -65,7 +65,10 @@ impl D3D11SharedTexture {
         adapter_luid: LUID,
         width: u32,
         height: u32,
-        dx12_resources: Option<(&windows::Win32::Graphics::Direct3D12::ID3D12Device, &ID3D12CommandQueue)>,
+        dx12_resources: Option<(
+            &windows::Win32::Graphics::Direct3D12::ID3D12Device,
+            &ID3D12CommandQueue,
+        )>,
     ) -> Result<Self, String> {
         unsafe {
             let factory: IDXGIFactory1 = CreateDXGIFactory1()
@@ -73,57 +76,61 @@ impl D3D11SharedTexture {
 
             let adapter = find_adapter_by_luid(&factory, adapter_luid)?;
 
-            let (device, context, device_11on12) = if let Some((dx12_device, dx12_queue)) = dx12_resources {
-                // Create D3D11on12 device wrapping the DX12 device and queue
-                let mut device: Option<ID3D11Device> = None;
-                let mut context: Option<ID3D11DeviceContext> = None;
+            let (device, context, device_11on12) =
+                if let Some((dx12_device, dx12_queue)) = dx12_resources {
+                    // Create D3D11on12 device wrapping the DX12 device and queue
+                    let mut device: Option<ID3D11Device> = None;
+                    let mut context: Option<ID3D11DeviceContext> = None;
 
-                let queues: [Option<windows::core::IUnknown>; 1] =
-                    [Some(dx12_queue.cast().map_err(|e| format!("Queue cast failed: {:?}", e))?)];
+                    let queues: [Option<windows::core::IUnknown>; 1] = [Some(
+                        dx12_queue
+                            .cast()
+                            .map_err(|e| format!("Queue cast failed: {:?}", e))?,
+                    )];
 
-                D3D11On12CreateDevice(
-                    dx12_device, // DX12 device
-                    D3D11_CREATE_DEVICE_BGRA_SUPPORT.0,
-                    None,
-                    Some(&queues),
-                    0, // NodeMask
-                    Some(&mut device as *mut _),
-                    Some(&mut context as *mut _),
-                    None,
-                )
-                .map_err(|e| format!("D3D11On12CreateDevice failed: {:?}", e))?;
+                    D3D11On12CreateDevice(
+                        dx12_device, // DX12 device
+                        D3D11_CREATE_DEVICE_BGRA_SUPPORT.0,
+                        None,
+                        Some(&queues),
+                        0, // NodeMask
+                        Some(&mut device as *mut _),
+                        Some(&mut context as *mut _),
+                        None,
+                    )
+                    .map_err(|e| format!("D3D11On12CreateDevice failed: {:?}", e))?;
 
-                let device = device.ok_or("D3D11on12 device is None")?;
-                let context = context.ok_or("D3D11on12 context is None")?;
+                    let device = device.ok_or("D3D11on12 device is None")?;
+                    let context = context.ok_or("D3D11on12 context is None")?;
 
-                let device_11on12: ID3D11On12Device = device
-                    .cast()
-                    .map_err(|e| format!("Failed to get ID3D11On12Device: {:?}", e))?;
+                    let device_11on12: ID3D11On12Device = device
+                        .cast()
+                        .map_err(|e| format!("Failed to get ID3D11On12Device: {:?}", e))?;
 
-                log::info!("Created D3D11On12 device for GPU-GPU copy");
-                (device, context, Some(device_11on12))
-            } else {
-                // Regular D3D11 device (fallback)
-                let mut device: Option<ID3D11Device> = None;
-                let mut context: Option<ID3D11DeviceContext> = None;
+                    log::info!("Created D3D11On12 device for GPU-GPU copy");
+                    (device, context, Some(device_11on12))
+                } else {
+                    // Regular D3D11 device (fallback)
+                    let mut device: Option<ID3D11Device> = None;
+                    let mut context: Option<ID3D11DeviceContext> = None;
 
-                D3D11CreateDevice(
-                    &adapter,
-                    D3D_DRIVER_TYPE_UNKNOWN,
-                    HMODULE::default(),
-                    D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                    None,
-                    D3D11_SDK_VERSION,
-                    Some(&mut device),
-                    None,
-                    Some(&mut context),
-                )
-                .map_err(|e| format!("D3D11CreateDevice failed: {:?}", e))?;
+                    D3D11CreateDevice(
+                        &adapter,
+                        D3D_DRIVER_TYPE_UNKNOWN,
+                        HMODULE::default(),
+                        D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                        None,
+                        D3D11_SDK_VERSION,
+                        Some(&mut device),
+                        None,
+                        Some(&mut context),
+                    )
+                    .map_err(|e| format!("D3D11CreateDevice failed: {:?}", e))?;
 
-                let device = device.ok_or("D3D11 device is None")?;
-                let context = context.ok_or("D3D11 context is None")?;
-                (device, context, None)
-            };
+                    let device = device.ok_or("D3D11 device is None")?;
+                    let context = context.ok_or("D3D11 context is None")?;
+                    (device, context, None)
+                };
 
             // Create shared texture
             let desc = D3D11_TEXTURE2D_DESC {
@@ -251,13 +258,15 @@ impl D3D11SharedTexture {
     ) -> Result<ID3D11Resource, String> {
         let mut wrapped: Option<ID3D11Resource> = None;
 
-        device_11on12.CreateWrappedResource(
-            dx12_resource,
-            &windows::Win32::Graphics::Direct3D11on12::D3D11_RESOURCE_FLAGS::default(),
-            windows::Win32::Graphics::Direct3D12::D3D12_RESOURCE_STATE_COMMON,
-            windows::Win32::Graphics::Direct3D12::D3D12_RESOURCE_STATE_COMMON,
-            &mut wrapped,
-        ).map_err(|e| format!("CreateWrappedResource failed: {:?}", e))?;
+        device_11on12
+            .CreateWrappedResource(
+                dx12_resource,
+                &windows::Win32::Graphics::Direct3D11on12::D3D11_RESOURCE_FLAGS::default(),
+                windows::Win32::Graphics::Direct3D12::D3D12_RESOURCE_STATE_COMMON,
+                windows::Win32::Graphics::Direct3D12::D3D12_RESOURCE_STATE_COMMON,
+                &mut wrapped,
+            )
+            .map_err(|e| format!("CreateWrappedResource failed: {:?}", e))?;
 
         wrapped.ok_or_else(|| "Wrapped resource is None".to_string())
     }
@@ -271,7 +280,10 @@ impl D3D11SharedTexture {
     }
 }
 
-fn find_adapter_by_luid(factory: &IDXGIFactory1, target_luid: LUID) -> Result<IDXGIAdapter1, String> {
+fn find_adapter_by_luid(
+    factory: &IDXGIFactory1,
+    target_luid: LUID,
+) -> Result<IDXGIAdapter1, String> {
     unsafe {
         if target_luid.LowPart == 0 && target_luid.HighPart == 0 {
             return factory

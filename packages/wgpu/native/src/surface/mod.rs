@@ -81,21 +81,30 @@ impl WgpuSurface {
         #[cfg(target_vendor = "apple")]
         {
             *self = self::apple::AppleSurface::create(
-                self.device.clone(), self.queue.clone(), width, height,
+                self.device.clone(),
+                self.queue.clone(),
+                width,
+                height,
             )?;
         }
 
         #[cfg(target_os = "windows")]
         {
             *self = self::windows::WindowsSurface::create(
-                self.device.clone(), self.queue.clone(), width, height,
+                self.device.clone(),
+                self.queue.clone(),
+                width,
+                height,
             )?;
         }
 
         #[cfg(target_os = "linux")]
         {
             *self = self::linux::LinuxSurface::create(
-                self.device.clone(), self.queue.clone(), width, height,
+                self.device.clone(),
+                self.queue.clone(),
+                width,
+                height,
             )?;
         }
 
@@ -148,10 +157,9 @@ impl WgpuSurface {
         width: u32,
         height: u32,
     ) -> Result<Self, String> {
-        let (platform, depth_texture, _depth_view) =
-            self::android::AndroidSurface::create(
-                instance, adapter, &device, window_ptr, width, height,
-            )?;
+        let (platform, depth_texture, _depth_view) = self::android::AndroidSurface::create(
+            instance, adapter, &device, window_ptr, width, height,
+        )?;
 
         let format_ffi = match platform.config.format {
             wgpu::TextureFormat::Rgba8Unorm => 17,
@@ -198,7 +206,12 @@ impl WgpuSurface {
 // Unsupported platforms
 // =============================================================================
 
-#[cfg(not(any(target_vendor = "apple", target_os = "windows", target_os = "linux", target_os = "android")))]
+#[cfg(not(any(
+    target_vendor = "apple",
+    target_os = "windows",
+    target_os = "linux",
+    target_os = "android"
+)))]
 pub struct WgpuSurface {
     pub device: Arc<wgpu::Device>,
     pub queue: Arc<wgpu::Queue>,
@@ -209,7 +222,12 @@ pub struct WgpuSurface {
     pub depth_texture: wgpu::Texture,
 }
 
-#[cfg(not(any(target_vendor = "apple", target_os = "windows", target_os = "linux", target_os = "android")))]
+#[cfg(not(any(
+    target_vendor = "apple",
+    target_os = "windows",
+    target_os = "linux",
+    target_os = "android"
+)))]
 impl WgpuSurface {
     pub fn new(
         _device: Arc<wgpu::Device>,

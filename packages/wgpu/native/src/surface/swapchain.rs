@@ -63,7 +63,10 @@ impl SwapchainSurface {
 
         log::info!(
             "Swapchain surface: {}x{}, format {:?}, present modes: {:?}",
-            width, height, format, caps.present_modes
+            width,
+            height,
+            format,
+            caps.present_modes
         );
 
         // Prefer Mailbox (low latency) > Fifo (vsync) > Immediate
@@ -128,7 +131,12 @@ impl SwapchainSurface {
                     match self.surface.get_current_texture() {
                         wgpu::CurrentSurfaceTexture::Success(tex)
                         | wgpu::CurrentSurfaceTexture::Suboptimal(tex) => tex,
-                        other => return Err(format!("Failed to get swapchain texture after reconfigure: {:?}", other)),
+                        other => {
+                            return Err(format!(
+                                "Failed to get swapchain texture after reconfigure: {:?}",
+                                other
+                            ))
+                        }
                     }
                 }
                 other => return Err(format!("Failed to get swapchain texture: {:?}", other)),
@@ -137,7 +145,9 @@ impl SwapchainSurface {
         }
 
         let frame = self.current_frame.as_ref().unwrap();
-        Ok(frame.texture.create_view(&wgpu::TextureViewDescriptor::default()))
+        Ok(frame
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default()))
     }
 
     pub fn present(&mut self) {
@@ -159,9 +169,11 @@ impl SwapchainSurface {
             }
         };
 
-        let mut encoder = self.device.create_command_encoder(
-            &wgpu::CommandEncoderDescriptor { label: Some("swapchain clear") },
-        );
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("swapchain clear"),
+            });
 
         {
             let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -208,7 +220,7 @@ fn create_raw_handles(hwnd: isize) -> Result<(RawWindowHandle, RawDisplayHandle)
 
 #[cfg(target_os = "linux")]
 fn create_raw_handles(window_handle: isize) -> Result<(RawWindowHandle, RawDisplayHandle), String> {
-    use raw_window_handle::{XlibWindowHandle, XlibDisplayHandle};
+    use raw_window_handle::{XlibDisplayHandle, XlibWindowHandle};
 
     // Expect an X11 Window (XID) from the caller.
     // Wayland support can be added later when needed.
@@ -225,21 +237,20 @@ fn create_raw_handles(window_handle: isize) -> Result<(RawWindowHandle, RawDispl
 
 #[cfg(target_os = "macos")]
 fn create_raw_handles(ns_window: isize) -> Result<(RawWindowHandle, RawDisplayHandle), String> {
-    use raw_window_handle::{AppKitWindowHandle, AppKitDisplayHandle};
     use objc2::msg_send;
+    use raw_window_handle::{AppKitDisplayHandle, AppKitWindowHandle};
     use std::ptr::NonNull;
 
     // SDL gives us an NSWindow; wgpu needs the NSView (contentView).
     let ns_window_ptr = ns_window as *mut objc2::runtime::AnyObject;
-    let ns_view: *mut objc2::runtime::AnyObject = unsafe {
-        msg_send![&*ns_window_ptr, contentView]
-    };
+    let ns_view: *mut objc2::runtime::AnyObject =
+        unsafe { msg_send![&*ns_window_ptr, contentView] };
     if ns_view.is_null() {
         return Err("NSWindow contentView is null".to_string());
     }
 
-    let view_nn = NonNull::new(ns_view as *mut std::ffi::c_void)
-        .ok_or("Failed to get non-null NSView")?;
+    let view_nn =
+        NonNull::new(ns_view as *mut std::ffi::c_void).ok_or("Failed to get non-null NSView")?;
     let window_handle = AppKitWindowHandle::new(view_nn);
     let raw_window = RawWindowHandle::AppKit(window_handle);
 

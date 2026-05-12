@@ -1,13 +1,17 @@
 // Command encoder, render pass, and compute pass operations.
 
-use crate::handle::*;
 use super::enums::*;
 use super::resources::label_from_ptr;
 use super::types::*;
+use crate::handle::*;
 
 /// Convert u32::MAX sentinel to None, any other value to Some.
 fn u32_option(v: u32) -> Option<u32> {
-    if v == u32::MAX { None } else { Some(v) }
+    if v == u32::MAX {
+        None
+    } else {
+        Some(v)
+    }
 }
 
 // =============================================================================
@@ -18,16 +22,12 @@ pub fn device_create_command_encoder(
     device: &wgpu::Device,
     label: Option<&str>,
 ) -> WGPUCommandEncoder {
-    let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label,
-    });
+    let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label });
 
     into_handle(encoder)
 }
 
-pub fn command_encoder_finish(
-    encoder_handle: WGPUCommandEncoder,
-) -> WGPUCommandBuffer {
+pub fn command_encoder_finish(encoder_handle: WGPUCommandEncoder) -> WGPUCommandBuffer {
     let encoder = unsafe { drop_handle::<wgpu::CommandEncoder>(encoder_handle) };
     let command_buffer = encoder.finish();
     into_handle(command_buffer)
@@ -45,7 +45,13 @@ pub fn command_encoder_copy_buffer_to_buffer(
     let src_buffer = unsafe { deref_handle::<wgpu::Buffer>(source) };
     let dst_buffer = unsafe { deref_handle::<wgpu::Buffer>(destination) };
 
-    encoder.copy_buffer_to_buffer(src_buffer, source_offset, dst_buffer, destination_offset, size);
+    encoder.copy_buffer_to_buffer(
+        src_buffer,
+        source_offset,
+        dst_buffer,
+        destination_offset,
+        size,
+    );
 }
 
 pub fn command_encoder_clear_buffer(
@@ -83,7 +89,11 @@ pub fn command_encoder_copy_texture_to_buffer(
         wgpu::TexelCopyTextureInfo {
             texture,
             mip_level,
-            origin: wgpu::Origin3d { x: origin_x, y: origin_y, z: origin_z },
+            origin: wgpu::Origin3d {
+                x: origin_x,
+                y: origin_y,
+                z: origin_z,
+            },
             aspect: wgpu::TextureAspect::All,
         },
         wgpu::TexelCopyBufferInfo {
@@ -91,10 +101,18 @@ pub fn command_encoder_copy_texture_to_buffer(
             layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(bytes_per_row),
-                rows_per_image: if rows_per_image == 0 { None } else { Some(rows_per_image) },
+                rows_per_image: if rows_per_image == 0 {
+                    None
+                } else {
+                    Some(rows_per_image)
+                },
             },
         },
-        wgpu::Extent3d { width, height, depth_or_array_layers: depth },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: depth,
+        },
     );
 }
 
@@ -123,16 +141,28 @@ pub fn command_encoder_copy_buffer_to_texture(
             layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(bytes_per_row),
-                rows_per_image: if rows_per_image == 0 { None } else { Some(rows_per_image) },
+                rows_per_image: if rows_per_image == 0 {
+                    None
+                } else {
+                    Some(rows_per_image)
+                },
             },
         },
         wgpu::TexelCopyTextureInfo {
             texture,
             mip_level,
-            origin: wgpu::Origin3d { x: origin_x, y: origin_y, z: origin_z },
+            origin: wgpu::Origin3d {
+                x: origin_x,
+                y: origin_y,
+                z: origin_z,
+            },
             aspect: wgpu::TextureAspect::All,
         },
-        wgpu::Extent3d { width, height, depth_or_array_layers: depth },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: depth,
+        },
     );
 }
 
@@ -161,16 +191,28 @@ pub fn command_encoder_copy_texture_to_texture(
         wgpu::TexelCopyTextureInfo {
             texture: src_texture,
             mip_level: src_mip_level,
-            origin: wgpu::Origin3d { x: src_origin_x, y: src_origin_y, z: src_origin_z },
+            origin: wgpu::Origin3d {
+                x: src_origin_x,
+                y: src_origin_y,
+                z: src_origin_z,
+            },
             aspect: wgpu::TextureAspect::All,
         },
         wgpu::TexelCopyTextureInfo {
             texture: dst_texture,
             mip_level: dst_mip_level,
-            origin: wgpu::Origin3d { x: dst_origin_x, y: dst_origin_y, z: dst_origin_z },
+            origin: wgpu::Origin3d {
+                x: dst_origin_x,
+                y: dst_origin_y,
+                z: dst_origin_z,
+            },
             aspect: wgpu::TextureAspect::All,
         },
-        wgpu::Extent3d { width, height, depth_or_array_layers: depth },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: depth,
+        },
     );
 }
 
@@ -187,33 +229,49 @@ pub fn command_encoder_begin_render_pass(
 ) -> WGPURenderPassEncoder {
     let encoder = unsafe { drop_handle::<wgpu::CommandEncoder>(encoder_handle) };
 
-    let color_attachments: Vec<Option<wgpu::RenderPassColorAttachment>> = if desc.color_attachment_count > 0 && !desc.color_attachments.is_null() {
+    let color_attachments: Vec<Option<wgpu::RenderPassColorAttachment>> = if desc
+        .color_attachment_count
+        > 0
+        && !desc.color_attachments.is_null()
+    {
         let attachments = unsafe {
             std::slice::from_raw_parts(desc.color_attachments, desc.color_attachment_count as usize)
         };
-        attachments.iter().map(|a| {
-            if a.view == 0 { return None; }
-            let view = unsafe { deref_handle::<wgpu::TextureView>(a.view) };
-            let resolve_target = if a.resolve_target != 0 {
-                Some(unsafe { deref_handle::<wgpu::TextureView>(a.resolve_target) })
-            } else {
-                None
-            };
-            Some(wgpu::RenderPassColorAttachment {
-                view,
-                resolve_target,
-                depth_slice: if a.depth_slice == u32::MAX { None } else { Some(a.depth_slice) },
-                ops: wgpu::Operations {
-                    load: load_op_from_u32(a.load_op, wgpu::Color {
-                        r: a.clear_r,
-                        g: a.clear_g,
-                        b: a.clear_b,
-                        a: a.clear_a,
-                    }),
-                    store: store_op_from_u32(a.store_op),
-                },
+        attachments
+            .iter()
+            .map(|a| {
+                if a.view == 0 {
+                    return None;
+                }
+                let view = unsafe { deref_handle::<wgpu::TextureView>(a.view) };
+                let resolve_target = if a.resolve_target != 0 {
+                    Some(unsafe { deref_handle::<wgpu::TextureView>(a.resolve_target) })
+                } else {
+                    None
+                };
+                Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    resolve_target,
+                    depth_slice: if a.depth_slice == u32::MAX {
+                        None
+                    } else {
+                        Some(a.depth_slice)
+                    },
+                    ops: wgpu::Operations {
+                        load: load_op_from_u32(
+                            a.load_op,
+                            wgpu::Color {
+                                r: a.clear_r,
+                                g: a.clear_g,
+                                b: a.clear_b,
+                                a: a.clear_a,
+                            },
+                        ),
+                        store: store_op_from_u32(a.store_op),
+                    },
+                })
             })
-        }).collect()
+            .collect()
     } else {
         vec![]
     };
@@ -274,7 +332,10 @@ pub fn command_encoder_begin_render_pass(
     let pass_box = Box::new(render_pass);
     let pass_ptr = Box::into_raw(pass_box);
 
-    into_handle(RenderPassWrapper { encoder_ptr, pass_ptr })
+    into_handle(RenderPassWrapper {
+        encoder_ptr,
+        pass_ptr,
+    })
 }
 
 pub fn render_pass_set_pipeline(
@@ -362,7 +423,10 @@ pub fn render_pass_draw(
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
-    pass.draw(first_vertex..first_vertex + vertex_count, first_instance..first_instance + instance_count);
+    pass.draw(
+        first_vertex..first_vertex + vertex_count,
+        first_instance..first_instance + instance_count,
+    );
 }
 
 pub fn render_pass_draw_indexed(
@@ -376,7 +440,11 @@ pub fn render_pass_draw_indexed(
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
-    pass.draw_indexed(first_index..first_index + index_count, base_vertex, first_instance..first_instance + instance_count);
+    pass.draw_indexed(
+        first_index..first_index + index_count,
+        base_vertex,
+        first_instance..first_instance + instance_count,
+    );
 }
 
 pub fn render_pass_multi_draw_indexed_indirect(
@@ -416,19 +484,14 @@ pub fn render_pass_draw_indexed_indirect(
     pass.draw_indexed_indirect(buffer, indirect_offset);
 }
 
-pub fn render_pass_begin_occlusion_query(
-    pass_handle: WGPURenderPassEncoder,
-    query_index: u32,
-) {
+pub fn render_pass_begin_occlusion_query(pass_handle: WGPURenderPassEncoder, query_index: u32) {
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
     pass.begin_occlusion_query(query_index);
 }
 
-pub fn render_pass_end_occlusion_query(
-    pass_handle: WGPURenderPassEncoder,
-) {
+pub fn render_pass_end_occlusion_query(pass_handle: WGPURenderPassEncoder) {
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
@@ -477,10 +540,7 @@ pub fn render_pass_set_blend_constant(
     pass.set_blend_constant(wgpu::Color { r, g, b, a });
 }
 
-pub fn render_pass_set_stencil_reference(
-    pass_handle: WGPURenderPassEncoder,
-    reference: u32,
-) {
+pub fn render_pass_set_stencil_reference(pass_handle: WGPURenderPassEncoder, reference: u32) {
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
@@ -533,9 +593,7 @@ pub fn command_encoder_push_debug_group(
     encoder.push_debug_group(label_str);
 }
 
-pub fn command_encoder_pop_debug_group(
-    encoder_handle: WGPUCommandEncoder,
-) {
+pub fn command_encoder_pop_debug_group(encoder_handle: WGPUCommandEncoder) {
     let encoder = unsafe { deref_handle_mut::<wgpu::CommandEncoder>(encoder_handle) };
 
     encoder.pop_debug_group();
@@ -557,9 +615,7 @@ pub fn render_pass_push_debug_group(
     pass.push_debug_group(label_str);
 }
 
-pub fn render_pass_pop_debug_group(
-    pass_handle: WGPURenderPassEncoder,
-) {
+pub fn render_pass_pop_debug_group(pass_handle: WGPURenderPassEncoder) {
     let wrapper = unsafe { deref_handle::<RenderPassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
@@ -578,9 +634,7 @@ pub fn render_pass_set_immediates(
     pass.set_immediates(offset, slice);
 }
 
-pub fn render_pass_end_returning_encoder(
-    pass_handle: WGPURenderPassEncoder,
-) -> WGPUCommandEncoder {
+pub fn render_pass_end_returning_encoder(pass_handle: WGPURenderPassEncoder) -> WGPUCommandEncoder {
     let wrapper = unsafe { drop_handle::<RenderPassWrapper>(pass_handle) };
 
     unsafe {
@@ -634,7 +688,10 @@ pub fn command_encoder_begin_compute_pass(
     let pass_box = Box::new(compute_pass);
     let pass_ptr = Box::into_raw(pass_box);
 
-    into_handle(ComputePassWrapper { encoder_ptr, pass_ptr })
+    into_handle(ComputePassWrapper {
+        encoder_ptr,
+        pass_ptr,
+    })
 }
 
 pub fn compute_pass_set_pipeline(
@@ -708,9 +765,7 @@ pub fn compute_pass_push_debug_group(
     pass.push_debug_group(label_str);
 }
 
-pub fn compute_pass_pop_debug_group(
-    pass_handle: WGPUComputePassEncoder,
-) {
+pub fn compute_pass_pop_debug_group(pass_handle: WGPUComputePassEncoder) {
     let wrapper = unsafe { deref_handle::<ComputePassWrapper>(pass_handle) };
 
     let pass = unsafe { &mut *wrapper.pass_ptr };
@@ -745,9 +800,7 @@ pub fn compute_pass_set_immediates(
     pass.set_immediates(offset, slice);
 }
 
-pub fn compute_pass_end(
-    pass_handle: WGPUComputePassEncoder,
-) -> WGPUCommandEncoder {
+pub fn compute_pass_end(pass_handle: WGPUComputePassEncoder) -> WGPUCommandEncoder {
     let wrapper = unsafe { drop_handle::<ComputePassWrapper>(pass_handle) };
 
     unsafe {
@@ -773,11 +826,7 @@ pub fn device_create_query_set(
         1 => wgpu::QueryType::Occlusion,
         _ => wgpu::QueryType::Timestamp,
     };
-    let query_set = device.create_query_set(&wgpu::QuerySetDescriptor {
-        label,
-        ty,
-        count,
-    });
+    let query_set = device.create_query_set(&wgpu::QuerySetDescriptor { label, ty, count });
 
     into_handle(query_set)
 }
@@ -809,7 +858,12 @@ pub fn command_encoder_resolve_query_set(
     let qs = unsafe { deref_handle::<wgpu::QuerySet>(query_set_handle) };
     let dst_buffer = unsafe { deref_handle::<wgpu::Buffer>(destination) };
 
-    encoder.resolve_query_set(qs, first_query..first_query + query_count, dst_buffer, destination_offset);
+    encoder.resolve_query_set(
+        qs,
+        first_query..first_query + query_count,
+        dst_buffer,
+        destination_offset,
+    );
 }
 
 // =============================================================================
@@ -820,16 +874,24 @@ pub fn device_create_render_bundle_encoder(
     device: &wgpu::Device,
     desc: &WGPURenderBundleEncoderDescriptor,
 ) -> WGPURenderBundleEncoder {
-    let color_formats: Vec<Option<wgpu::TextureFormat>> = if desc.color_format_count > 0 && !desc.color_formats.is_null() {
-        let formats = unsafe {
-            std::slice::from_raw_parts(desc.color_formats, desc.color_format_count as usize)
+    let color_formats: Vec<Option<wgpu::TextureFormat>> =
+        if desc.color_format_count > 0 && !desc.color_formats.is_null() {
+            let formats = unsafe {
+                std::slice::from_raw_parts(desc.color_formats, desc.color_format_count as usize)
+            };
+            formats
+                .iter()
+                .map(|&f| {
+                    if f == 0xFFFFFFFF {
+                        None
+                    } else {
+                        Some(texture_format_from_u32(f))
+                    }
+                })
+                .collect()
+        } else {
+            vec![]
         };
-        formats.iter().map(|&f| {
-            if f == 0xFFFFFFFF { None } else { Some(texture_format_from_u32(f)) }
-        }).collect()
-    } else {
-        vec![]
-    };
 
     let depth_stencil = if desc.depth_stencil_format != 0 {
         Some(wgpu::RenderBundleDepthStencil {
@@ -928,7 +990,10 @@ pub fn render_bundle_encoder_draw(
     first_instance: u32,
 ) {
     let encoder = unsafe { deref_handle_mut::<wgpu::RenderBundleEncoder>(encoder_handle) };
-    encoder.draw(first_vertex..first_vertex + vertex_count, first_instance..first_instance + instance_count);
+    encoder.draw(
+        first_vertex..first_vertex + vertex_count,
+        first_instance..first_instance + instance_count,
+    );
 }
 
 pub fn render_bundle_encoder_draw_indexed(
@@ -940,7 +1005,11 @@ pub fn render_bundle_encoder_draw_indexed(
     first_instance: u32,
 ) {
     let encoder = unsafe { deref_handle_mut::<wgpu::RenderBundleEncoder>(encoder_handle) };
-    encoder.draw_indexed(first_index..first_index + index_count, base_vertex, first_instance..first_instance + instance_count);
+    encoder.draw_indexed(
+        first_index..first_index + index_count,
+        base_vertex,
+        first_instance..first_instance + instance_count,
+    );
 }
 
 pub fn render_bundle_encoder_draw_indirect(

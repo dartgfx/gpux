@@ -3,8 +3,8 @@
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Arc;
 
-use crate::handle::*;
 use super::types::*;
+use crate::handle::*;
 
 // =============================================================================
 // QUEUE WRITE OPERATIONS
@@ -27,7 +27,9 @@ pub fn queue_write_buffer(
     offset: u64,
     data: &[u8],
 ) {
-    if buffer_handle == 0 { return; }
+    if buffer_handle == 0 {
+        return;
+    }
     let buf = unsafe { deref_handle::<wgpu::Buffer>(buffer_handle) };
     queue.write_buffer(buf, offset, data);
 }
@@ -48,7 +50,9 @@ pub fn queue_write_texture(
     aspect: u32,
     explicit_rows_per_image: u32,
 ) {
-    if texture_handle == 0 { return; }
+    if texture_handle == 0 {
+        return;
+    }
     let tex = unsafe { deref_handle::<wgpu::Texture>(texture_handle) };
     let rows = if explicit_rows_per_image > 0 {
         explicit_rows_per_image
@@ -59,7 +63,11 @@ pub fn queue_write_texture(
         wgpu::TexelCopyTextureInfo {
             texture: tex,
             mip_level,
-            origin: wgpu::Origin3d { x: origin_x, y: origin_y, z: origin_z },
+            origin: wgpu::Origin3d {
+                x: origin_x,
+                y: origin_y,
+                z: origin_z,
+            },
             aspect: super::enums::texture_aspect_from_u32(aspect),
         },
         data,
@@ -68,7 +76,11 @@ pub fn queue_write_texture(
             bytes_per_row: Some(bytes_per_row),
             rows_per_image: Some(rows),
         },
-        wgpu::Extent3d { width, height, depth_or_array_layers },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers,
+        },
     );
 }
 
@@ -76,14 +88,13 @@ pub fn queue_write_texture(
 // QUEUE SUBMIT
 // =============================================================================
 
-pub fn queue_submit(
-    queue: &wgpu::Queue,
-    command_buffer_handles: &[WGPUCommandBuffer],
-) {
+pub fn queue_submit(queue: &wgpu::Queue, command_buffer_handles: &[WGPUCommandBuffer]) {
     let buffers: Vec<wgpu::CommandBuffer> = command_buffer_handles
         .iter()
         .filter_map(|&handle| {
-            if handle == 0 { return None; }
+            if handle == 0 {
+                return None;
+            }
             Some(unsafe { drop_handle::<wgpu::CommandBuffer>(handle) })
         })
         .collect();
@@ -103,7 +114,9 @@ pub fn buffer_read_sync(
     size: u64,
     output: &mut [u8],
 ) -> u64 {
-    if buffer_handle == 0 { return 0; }
+    if buffer_handle == 0 {
+        return 0;
+    }
     let src_buffer = unsafe { deref_handle::<wgpu::Buffer>(buffer_handle) };
 
     let staging = device.create_buffer(&wgpu::BufferDescriptor {
@@ -163,9 +176,15 @@ pub fn buffer_map_start(
         BufferMapMode::Write
     };
 
-    if buffer_handle == 0 { return 0; }
+    if buffer_handle == 0 {
+        return 0;
+    }
     let src_buffer = unsafe { deref_handle::<wgpu::Buffer>(buffer_handle) };
-    let actual_size = if size == 0 { src_buffer.size() - offset } else { size };
+    let actual_size = if size == 0 {
+        src_buffer.size() - offset
+    } else {
+        size
+    };
 
     let mapped_buffer = if map_mode == BufferMapMode::Read {
         let usage = src_buffer.usage();
@@ -225,13 +244,17 @@ pub fn buffer_map_start(
 }
 
 pub fn buffer_map_status(handle: WGPUBufferMapping) -> i32 {
-    if handle == 0 { return MAP_STATUS_ERROR; }
+    if handle == 0 {
+        return MAP_STATUS_ERROR;
+    }
     let mapping = unsafe { deref_handle::<PendingMapping>(handle) };
     mapping.status.load(Ordering::Acquire)
 }
 
 pub fn buffer_map_get_pointer(handle: WGPUBufferMapping) -> *const u8 {
-    if handle == 0 { return std::ptr::null(); }
+    if handle == 0 {
+        return std::ptr::null();
+    }
     let mapping = unsafe { deref_handle::<PendingMapping>(handle) };
 
     if mapping.status.load(Ordering::Acquire) != MAP_STATUS_READY {
@@ -248,7 +271,9 @@ pub fn buffer_map_get_pointer(handle: WGPUBufferMapping) -> *const u8 {
 }
 
 pub fn buffer_map_get_pointer_mut(handle: WGPUBufferMapping) -> *mut u8 {
-    if handle == 0 { return std::ptr::null_mut(); }
+    if handle == 0 {
+        return std::ptr::null_mut();
+    }
     let mapping = unsafe { deref_handle_mut::<PendingMapping>(handle) };
 
     if mapping.status.load(Ordering::Acquire) != MAP_STATUS_READY {
@@ -269,13 +294,17 @@ pub fn buffer_map_get_pointer_mut(handle: WGPUBufferMapping) -> *mut u8 {
 }
 
 pub fn buffer_map_get_size(handle: WGPUBufferMapping) -> u64 {
-    if handle == 0 { return 0; }
+    if handle == 0 {
+        return 0;
+    }
     let mapping = unsafe { deref_handle::<PendingMapping>(handle) };
     mapping.size
 }
 
 pub fn buffer_unmap(handle: WGPUBufferMapping) {
-    if handle == 0 { return; }
+    if handle == 0 {
+        return;
+    }
     let mapping = unsafe { drop_handle::<PendingMapping>(handle) };
 
     match mapping.buffer {
@@ -300,7 +329,9 @@ pub fn queue_submit_fenced(
     let buffers: Vec<wgpu::CommandBuffer> = command_buffer_handles
         .iter()
         .filter_map(|&handle| {
-            if handle == 0 { return None; }
+            if handle == 0 {
+                return None;
+            }
             Some(unsafe { drop_handle::<wgpu::CommandBuffer>(handle) })
         })
         .collect();
@@ -314,11 +345,10 @@ pub fn queue_submit_fenced(
     into_handle(PendingFence { submission_index })
 }
 
-pub fn fence_status(
-    device: &wgpu::Device,
-    handle: WGPUFence,
-) -> i32 {
-    if handle == 0 { return 1; }
+pub fn fence_status(device: &wgpu::Device, handle: WGPUFence) -> i32 {
+    if handle == 0 {
+        return 1;
+    }
     let fence = unsafe { deref_handle::<PendingFence>(handle) };
     let result = device.poll(wgpu::PollType::Wait {
         submission_index: Some(fence.submission_index.clone()),
@@ -332,7 +362,9 @@ pub fn fence_status(
 }
 
 pub fn fence_wait(device: &wgpu::Device, handle: WGPUFence) -> u32 {
-    if handle == 0 { return 0; }
+    if handle == 0 {
+        return 0;
+    }
     let fence = unsafe { deref_handle::<PendingFence>(handle) };
 
     let mut iterations = 0u32;
@@ -352,6 +384,8 @@ pub fn fence_wait(device: &wgpu::Device, handle: WGPUFence) -> u32 {
 }
 
 pub fn fence_release(handle: WGPUFence) {
-    if handle == 0 { return; }
+    if handle == 0 {
+        return;
+    }
     unsafe { drop_handle::<PendingFence>(handle) };
 }

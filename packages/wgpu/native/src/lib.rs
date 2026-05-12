@@ -77,10 +77,8 @@ pub(crate) use ffi_catch;
 /// Get the last error message.
 #[no_mangle]
 pub extern "C" fn wgpu_get_last_error() -> *const c_char {
-    LAST_ERROR.with(|e| {
-        match e.borrow().as_ref() {
-            Some(s) => s.as_ptr(),
-            None => std::ptr::null(),
-        }
+    LAST_ERROR.with(|e| match e.borrow().as_ref() {
+        Some(s) => s.as_ptr(),
+        None => std::ptr::null(),
     })
 }

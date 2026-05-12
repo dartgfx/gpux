@@ -79,9 +79,8 @@ pub extern "C" fn naga_free_validation_result(result: NagaValidationResult) {
     }
 
     // Free each error's message
-    let errors = unsafe {
-        std::slice::from_raw_parts_mut(result.errors, result.error_count as usize)
-    };
+    let errors =
+        unsafe { std::slice::from_raw_parts_mut(result.errors, result.error_count as usize) };
     for error in errors.iter() {
         if !error.message.is_null() {
             unsafe {

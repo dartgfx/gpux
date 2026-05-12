@@ -1,8 +1,8 @@
 // FFI exports for surface creation, sharing, and rendering.
 
+use crate::api::types::*;
 use crate::handle::*;
 use crate::surface::WgpuSurface;
-use crate::api::types::*;
 use crate::{clear_error, ffi_catch, set_error};
 
 // =============================================================================
@@ -86,7 +86,11 @@ pub extern "C" fn wgpu_create_surface_from_window(
 /// Stub for Android - use wgpu_create_surface_from_window instead
 #[cfg(target_os = "android")]
 #[no_mangle]
-pub extern "C" fn wgpu_create_surface(_device_handle: WGPUDevice, _width: u32, _height: u32) -> u64 {
+pub extern "C" fn wgpu_create_surface(
+    _device_handle: WGPUDevice,
+    _width: u32,
+    _height: u32,
+) -> u64 {
     set_error("On Android, use wgpu_create_surface_from_window");
     0
 }
@@ -119,7 +123,9 @@ pub extern "C" fn wgpu_get_surface_handle(surface_id: u64) -> u64 {
 
     #[cfg(not(target_os = "android"))]
     {
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         let surface = unsafe { deref_handle::<WgpuSurface>(surface_id) };
         surface.platform_handle()
     }
@@ -130,7 +136,9 @@ pub extern "C" fn wgpu_get_surface_handle(surface_id: u64) -> u64 {
 pub extern "C" fn wgpu_get_pixel_buffer_ptr(surface_id: u64) -> *const u8 {
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     {
-        if surface_id == 0 { return std::ptr::null(); }
+        if surface_id == 0 {
+            return std::ptr::null();
+        }
         let surface = unsafe { deref_handle::<WgpuSurface>(surface_id) };
         surface.platform.get_pixel_buffer_ptr()
     }
@@ -147,7 +155,9 @@ pub extern "C" fn wgpu_get_pixel_buffer_ptr(surface_id: u64) -> *const u8 {
 pub extern "C" fn wgpu_get_shared_handle(surface_id: u64) -> u64 {
     #[cfg(target_os = "windows")]
     {
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         let surface = unsafe { deref_handle::<WgpuSurface>(surface_id) };
         surface.platform.get_shared_handle()
     }
@@ -176,18 +186,30 @@ pub extern "C" fn wgpu_get_surface_format(surface_id: u64) -> u32 {
 /// Resize surface. Returns 1 on success, 0 on failure.
 #[no_mangle]
 pub extern "C" fn wgpu_resize_surface(surface_id: u64, width: u32, height: u32) -> i32 {
-    if surface_id == 0 { return 0; }
+    if surface_id == 0 {
+        return 0;
+    }
     ffi_catch!(0, {
         let surface = unsafe { deref_handle_mut::<WgpuSurface>(surface_id) };
-        if surface.resize(width, height).is_ok() { 1 } else { 0 }
+        if surface.resize(width, height).is_ok() {
+            1
+        } else {
+            0
+        }
     })
 }
 
 /// Destroy surface.
 #[no_mangle]
 pub extern "C" fn wgpu_destroy_surface(surface_id: u64) {
-    if surface_id == 0 { return; }
-    ffi_catch!((), { unsafe { drop_handle::<WgpuSurface>(surface_id); } })
+    if surface_id == 0 {
+        return;
+    }
+    ffi_catch!((), {
+        unsafe {
+            drop_handle::<WgpuSurface>(surface_id);
+        }
+    })
 }
 
 // =============================================================================
@@ -203,9 +225,7 @@ pub extern "system" fn Java_com_example_flutter_1wgpu_FlutterWgpuPlugin_nativeGe
 ) -> jni::sys::jlong {
     use ndk::native_window::NativeWindow;
 
-    let native_window = unsafe {
-        NativeWindow::from_surface(env.get_raw(), surface.as_raw())
-    };
+    let native_window = unsafe { NativeWindow::from_surface(env.get_raw(), surface.as_raw()) };
 
     match native_window {
         Some(window) => {
@@ -276,13 +296,17 @@ pub extern "C" fn wgpu_mark_frame_available(_engine_handle: i64, _texture_id: i6
 /// Get texture view for rendering to surface.
 #[no_mangle]
 pub extern "C" fn wgpu_surface_get_texture_view(surface_id: u64) -> WGPUTextureView {
-    if surface_id == 0 { return 0; }
+    if surface_id == 0 {
+        return 0;
+    }
 
     ffi_catch!(0, {
         #[cfg(not(target_os = "android"))]
         {
             let surface = unsafe { deref_handle::<WgpuSurface>(surface_id) };
-            let view = surface.texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let view = surface
+                .texture
+                .create_view(&wgpu::TextureViewDescriptor::default());
             into_handle(view)
         }
 
@@ -295,12 +319,17 @@ pub extern "C" fn wgpu_surface_get_texture_view(surface_id: u64) -> WGPUTextureV
                     wgpu::CurrentSurfaceTexture::Success(tex)
                     | wgpu::CurrentSurfaceTexture::Suboptimal(tex) => tex,
                     wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
-                        surface.platform.resize(&surface.device, surface.width, surface.height);
+                        surface
+                            .platform
+                            .resize(&surface.device, surface.width, surface.height);
                         match surface.get_current_texture() {
                             wgpu::CurrentSurfaceTexture::Success(tex)
                             | wgpu::CurrentSurfaceTexture::Suboptimal(tex) => tex,
                             other => {
-                                log::error!("Failed to get swapchain texture after reconfigure: {:?}", other);
+                                log::error!(
+                                    "Failed to get swapchain texture after reconfigure: {:?}",
+                                    other
+                                );
                                 return 0;
                             }
                         }
@@ -314,7 +343,9 @@ pub extern "C" fn wgpu_surface_get_texture_view(surface_id: u64) -> WGPUTextureV
             }
 
             let frame = surface.current_frame.as_ref().unwrap();
-            let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let view = frame
+                .texture
+                .create_view(&wgpu::TextureViewDescriptor::default());
             into_handle(view)
         }
     })
@@ -322,11 +353,10 @@ pub extern "C" fn wgpu_surface_get_texture_view(surface_id: u64) -> WGPUTextureV
 
 /// Copy from a GpuTexture to surface.
 #[no_mangle]
-pub extern "C" fn wgpu_surface_copy_from_texture(
-    surface_id: u64,
-    src_texture: WGPUTexture,
-) {
-    if surface_id == 0 { return; }
+pub extern "C" fn wgpu_surface_copy_from_texture(surface_id: u64, src_texture: WGPUTexture) {
+    if surface_id == 0 {
+        return;
+    }
 
     ffi_catch!((), {
         #[cfg(not(target_os = "android"))]
@@ -339,9 +369,12 @@ pub extern "C" fn wgpu_surface_copy_from_texture(
             let surface = unsafe { deref_handle::<WgpuSurface>(surface_id) };
             let src = unsafe { deref_handle::<wgpu::Texture>(src_texture) };
 
-            let mut encoder = surface.device.create_command_encoder(
-                &wgpu::CommandEncoderDescriptor { label: Some("surface copy") }
-            );
+            let mut encoder =
+                surface
+                    .device
+                    .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                        label: Some("surface copy"),
+                    });
 
             encoder.copy_texture_to_texture(
                 wgpu::TexelCopyTextureInfo {
@@ -378,7 +411,9 @@ pub extern "C" fn wgpu_surface_copy_from_texture(
 #[no_mangle]
 #[allow(unused_variables)]
 pub extern "C" fn wgpu_surface_present(surface_id: u64) {
-    if surface_id == 0 { return; }
+    if surface_id == 0 {
+        return;
+    }
 
     ffi_catch!((), {
         #[cfg(target_os = "windows")]
@@ -401,7 +436,11 @@ pub extern "C" fn wgpu_surface_present(surface_id: u64) {
             }
         }
 
-        #[cfg(all(not(target_os = "windows"), not(target_os = "linux"), not(target_os = "android")))]
+        #[cfg(all(
+            not(target_os = "windows"),
+            not(target_os = "linux"),
+            not(target_os = "android")
+        ))]
         {
             let _ = surface_id;
         }
@@ -476,7 +515,9 @@ pub extern "C" fn wgpu_swapchain_get_format(surface_id: u64) -> u32 {
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         let surface = unsafe { deref_handle::<SwapchainSurface>(surface_id) };
         match surface.format() {
             wgpu::TextureFormat::Bgra8Unorm => 26,
@@ -506,7 +547,9 @@ pub extern "C" fn wgpu_swapchain_get_texture_view(surface_id: u64) -> WGPUTextur
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         ffi_catch!(0, {
             let surface = unsafe { deref_handle_mut::<SwapchainSurface>(surface_id) };
             match surface.get_texture_view() {
@@ -533,10 +576,14 @@ pub extern "C" fn wgpu_swapchain_get_depth_view(surface_id: u64) -> WGPUTextureV
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         ffi_catch!(0, {
             let surface = unsafe { deref_handle::<SwapchainSurface>(surface_id) };
-            let view = surface.depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let view = surface
+                .depth_texture
+                .create_view(&wgpu::TextureViewDescriptor::default());
             into_handle(view)
         })
     }
@@ -555,7 +602,9 @@ pub extern "C" fn wgpu_swapchain_present(surface_id: u64) {
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return; }
+        if surface_id == 0 {
+            return;
+        }
         ffi_catch!((), {
             let surface = unsafe { deref_handle_mut::<SwapchainSurface>(surface_id) };
             surface.present();
@@ -576,7 +625,9 @@ pub extern "C" fn wgpu_swapchain_resize(surface_id: u64, width: u32, height: u32
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return 0; }
+        if surface_id == 0 {
+            return 0;
+        }
         ffi_catch!(0, {
             let surface = unsafe { deref_handle_mut::<SwapchainSurface>(surface_id) };
             match surface.resize(width, height) {
@@ -598,18 +649,14 @@ pub extern "C" fn wgpu_swapchain_resize(surface_id: u64, width: u32, height: u32
 
 /// Clear the swapchain to a solid color and present.
 #[no_mangle]
-pub extern "C" fn wgpu_swapchain_clear(
-    surface_id: u64,
-    r: f64,
-    g: f64,
-    b: f64,
-    a: f64,
-) {
+pub extern "C" fn wgpu_swapchain_clear(surface_id: u64, r: f64, g: f64, b: f64, a: f64) {
     #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return; }
+        if surface_id == 0 {
+            return;
+        }
         ffi_catch!((), {
             let surface = unsafe { deref_handle_mut::<SwapchainSurface>(surface_id) };
             surface.clear(r, g, b, a);
@@ -629,8 +676,14 @@ pub extern "C" fn wgpu_swapchain_destroy(surface_id: u64) {
     {
         use crate::surface::swapchain::SwapchainSurface;
 
-        if surface_id == 0 { return; }
-        ffi_catch!((), { unsafe { drop_handle::<SwapchainSurface>(surface_id); } })
+        if surface_id == 0 {
+            return;
+        }
+        ffi_catch!((), {
+            unsafe {
+                drop_handle::<SwapchainSurface>(surface_id);
+            }
+        })
     }
 
     #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]

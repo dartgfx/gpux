@@ -35,9 +35,7 @@ fn extract_wgpu_version() -> Option<String> {
             in_wgpu_block = true;
         } else if in_wgpu_block && line.starts_with("version = ") {
             // Extract version from: version = "25.0.2"
-            let version = line
-                .strip_prefix("version = \"")?
-                .strip_suffix('"')?;
+            let version = line.strip_prefix("version = \"")?.strip_suffix('"')?;
             return Some(version.to_string());
         }
     }

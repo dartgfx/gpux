@@ -14,8 +14,8 @@ use core_foundation::string::CFString;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2_metal::{
-    MTLDevice, MTLPixelFormat, MTLStorageMode, MTLTexture, MTLTextureDescriptor,
-    MTLTextureType, MTLTextureUsage,
+    MTLDevice, MTLPixelFormat, MTLStorageMode, MTLTexture, MTLTextureDescriptor, MTLTextureType,
+    MTLTextureUsage,
 };
 use std::ffi::c_void;
 use std::sync::Arc;
