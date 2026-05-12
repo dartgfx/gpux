@@ -19,7 +19,10 @@ export 'canvas.dart' show GpuCanvasAlphaMode;
 class WebGpu implements GpuInstance {
   WebGpu() : _js = jsNavigator.gpu {
     if (_js == null) {
-      throw UnsupportedError('WebGPU is not supported in this browser.');
+      throw UnsupportedError(
+        'WebGPU is not supported in this browser. '
+        'Use a browser and platform with WebGPU enabled.',
+      );
     }
   }
 
@@ -61,7 +64,10 @@ class WebGpu implements GpuInstance {
     final jsOpts = jsOptions.isEmpty ? null : jsOptions.jsify() as JSObject;
     final jsAdapter = await _js!.requestAdapter(jsOpts).toDart;
     if (jsAdapter == null) {
-      throw StateError('No GPU adapter available.');
+      throw StateError(
+        'No GPU adapter available. The browser exposes WebGPU, but no '
+        'compatible adapter was returned for this device/options.',
+      );
     }
     return WebGpuAdapter(jsAdapter);
   }

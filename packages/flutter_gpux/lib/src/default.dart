@@ -58,6 +58,7 @@ class DefaultGpu extends StatefulWidget {
 
 class _DefaultGpuState extends State<DefaultGpu> {
   GpuController? _controller;
+  Object? _initError;
 
   @override
   void initState() {
@@ -67,7 +68,26 @@ class _DefaultGpuState extends State<DefaultGpu> {
 
   Future<void> _init() async {
     final controller = GpuController(instance: widget.instance);
-    await controller.initialize(features: widget.features);
+    try {
+      await controller.initialize(features: widget.features);
+    } catch (error, stackTrace) {
+      controller.dispose();
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'flutter_gpux',
+          context: ErrorDescription('while initializing DefaultGpu'),
+        ),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _initError = error;
+      });
+      return;
+    }
     if (!mounted) {
       controller.dispose();
       return;
@@ -83,6 +103,12 @@ class _DefaultGpuState extends State<DefaultGpu> {
 
   @override
   Widget build(BuildContext context) {
+    final initError = _initError;
+    if (initError != null) {
+      return ErrorWidget.withDetails(
+        message: initError.toString(),
+      );
+    }
     final controller = _controller;
     if (controller == null) {
       return const SizedBox.shrink();
