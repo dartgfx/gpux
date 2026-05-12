@@ -1,0 +1,2 @@
+# Run tests sequentially since wgpu has global state
+concurrency: 1
