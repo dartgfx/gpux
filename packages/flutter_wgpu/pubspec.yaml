@@ -7,11 +7,11 @@ topics:
   - flutter
   - graphics
 
-resolution: workspace
 environment:
   sdk: ^3.5.0
   flutter: ">=3.22.0"
 
+resolution: workspace
 
 flutter:
   plugin:

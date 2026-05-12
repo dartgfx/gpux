@@ -7,10 +7,10 @@ topics:
   - webgpu
   - graphics
 
-resolution: workspace
 environment:
   sdk: ^3.10.0
 
+resolution: workspace
 
 dependencies:
   gpuweb: ^0.1.0
