@@ -116,9 +116,20 @@ class FlutterWgpuPlugin : FlutterPlugin, MethodCallHandler {
                 "textureId" to textureId,
                 "windowPtr" to holder.windowPtr
             ))
+        } catch (e: LinkageError) {
+            Log.e(TAG, "Failed to link native surface bridge", e)
+            result.error(
+                "NATIVE_LINK_ERROR",
+                "Failed to link native surface bridge: ${e.javaClass.simpleName}: ${e.message}",
+                null
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create surface", e)
-            result.error("SURFACE_FAILED", "Failed to create surface: ${e.message}", null)
+            result.error(
+                "SURFACE_FAILED",
+                "Failed to create surface: ${e.javaClass.simpleName}: ${e.message}",
+                null
+            )
         }
     }
 
@@ -146,10 +157,28 @@ class FlutterWgpuPlugin : FlutterPlugin, MethodCallHandler {
             return
         }
 
-        surfaces[textureId]?.let { holder ->
-            holder.resize(width, height)
-            Log.i(TAG, "Resized surface: textureId=$textureId, ${width}x${height}, windowPtr=0x${holder.windowPtr.toString(16)}")
-            result.success(mapOf("windowPtr" to holder.windowPtr))
+        try {
+            surfaces[textureId]?.let { holder ->
+                holder.resize(width, height)
+                Log.i(TAG, "Resized surface: textureId=$textureId, ${width}x${height}, windowPtr=0x${holder.windowPtr.toString(16)}")
+                result.success(mapOf("windowPtr" to holder.windowPtr))
+                return
+            }
+        } catch (e: LinkageError) {
+            Log.e(TAG, "Failed to link native surface bridge", e)
+            result.error(
+                "NATIVE_LINK_ERROR",
+                "Failed to link native surface bridge: ${e.javaClass.simpleName}: ${e.message}",
+                null
+            )
+            return
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to resize surface", e)
+            result.error(
+                "SURFACE_RESIZE_FAILED",
+                "Failed to resize surface: ${e.javaClass.simpleName}: ${e.message}",
+                null
+            )
             return
         }
 
@@ -172,6 +201,7 @@ class WgpuSurfaceHolder(
 
     fun updateSurface() {
         // Get fresh surface from producer
+        releaseWindow()
         surface = producer.surface
         surface?.let { s ->
             windowPtr = FlutterWgpuPlugin.nativeGetWindow(s)
@@ -180,7 +210,7 @@ class WgpuSurfaceHolder(
     }
 
     fun clearSurface() {
-        windowPtr = 0L
+        releaseWindow()
         surface = null
     }
 
@@ -194,5 +224,12 @@ class WgpuSurfaceHolder(
     fun release() {
         clearSurface()
         producer.release()
+    }
+
+    private fun releaseWindow() {
+        if (windowPtr != 0L) {
+            FlutterWgpuPlugin.nativeReleaseWindow(windowPtr)
+            windowPtr = 0L
+        }
     }
 }

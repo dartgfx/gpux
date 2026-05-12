@@ -61,10 +61,10 @@ device.queue.submit([encoder.finish()]);
 
 ## Regenerating bindings
 
-When FFI functions change in `native/src/lib.rs`:
+Run the `gen_bindings.sh` script to regenerate FFI bindings from the Rust code. This uses `cbindgen` to parse the Rust crate and generate C headers, which are then converted to Dart FFI bindings using `ffigen`.
 
 ```bash
 ./gen_bindings.sh
 ```
 
-Requires `cbindgen` (`cargo install cbindgen`).
+Requires `cbindgen` (`cargo install cbindgen`) and `ffigen` (`dart pub global activate ffigen`).

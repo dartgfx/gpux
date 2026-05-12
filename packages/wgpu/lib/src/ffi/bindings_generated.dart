@@ -17,260 +17,38 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Pointer<ffi.Char> Function()>()
 external ffi.Pointer<ffi.Char> wgpu_get_last_error();
 
-/// Create a wgpu instance.
-/// Returns instance handle, or 0 on failure.
-@ffi.Native<ffi.Uint64 Function(ffi.Pointer<WGPUInstanceDescriptor>)>()
-external int wgpun_CreateInstance(
-  ffi.Pointer<WGPUInstanceDescriptor> descriptor,
-);
-
-/// Release an instance.
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_InstanceRelease(
-  int instance,
-);
-
-/// Get WGSL language features supported by this instance.
-/// Returns a bitmask matching GpuWgslLanguageFeatureName enum order.
-@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
-external int wgpun_InstanceGetWGSLLanguageFeatures(
-  int instance,
-);
-
-/// Request an adapter from an instance.
-/// Returns adapter handle, or 0 on failure.
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPURequestAdapterOptions>)
->()
-external int wgpun_InstanceRequestAdapter(
-  int instance,
-  ffi.Pointer<WGPURequestAdapterOptions> options,
-);
-
-/// Release an adapter.
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_AdapterRelease(
-  int adapter,
-);
-
-/// Get adapter info.
-@ffi.Native<WGPUAdapterInfo Function(ffi.Uint64)>()
-external WGPUAdapterInfo wgpun_AdapterGetInfo(
-  int adapter,
-);
-
-/// Get adapter limits.
-@ffi.Native<WGPUDeviceLimits Function(ffi.Uint64)>()
-external WGPUDeviceLimits wgpun_AdapterGetLimits(
-  int adapter,
-);
-
-/// Get adapter downlevel capability flags as a raw u64 bitmask.
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
-external int wgpun_AdapterGetDownlevelFlags(
-  int adapter,
-);
-
-/// Get adapter features as a bitmask.
-/// Bit positions match GpuFeatureName enum order.
-@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
-external int wgpun_AdapterGetFeatures(
-  int adapter,
-);
-
-/// Request a device from an adapter.
-/// Returns device handle, or 0 on failure.
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUDeviceDescriptor>)
->()
-external int wgpun_AdapterRequestDevice(
-  int adapter,
-  ffi.Pointer<WGPUDeviceDescriptor> descriptor,
-);
-
-/// Release a device.
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_DeviceRelease(
-  int device,
-);
-
-/// Get the queue for a device.
-/// Returns queue handle (a heap-allocated Arc<Queue> clone).
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
-external int wgpun_DeviceGetQueue(
-  int device,
-);
-
-/// Poll a device for completed work.
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint8)>()
-external void wgpun_DevicePoll(
-  int device,
-  int wait,
-);
-
-/// Get device features as a bitmask.
-/// Bit positions match GpuFeatureName enum order.
-@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
-external int wgpun_DeviceGetFeatures(
-  int device,
-);
-
-/// Get device limits.
-@ffi.Native<WGPUDeviceLimits Function(ffi.Uint64)>()
-external WGPUDeviceLimits wgpun_DeviceGetLimits(
-  int device,
-);
-
-/// Pop one captured device error.
-/// Returns null if the error queue is empty.
-@ffi.Native<ffi.Pointer<ffi.Char> Function(ffi.Uint64)>()
-external ffi.Pointer<ffi.Char> wgpun_DevicePopError(
-  int device,
-);
-
-/// Push an error scope onto the device's error scope stack.
-/// filter: 1 = Validation, 2 = OutOfMemory, 3 = Internal
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint32)>()
-external void wgpun_DevicePushErrorScope(
-  int device,
-  int filter,
-);
-
-/// Pop the top error scope and return the error type + message.
-/// Returns error type: 0 = no error, 1 = Validation, 2 = OutOfMemory, 3 = Internal.
-/// If an error was captured, the message is available via wgpun_DevicePopScopeError.
-@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
-external int wgpun_DevicePopErrorScope(
-  int device,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUBufferDescriptor>)
->()
-external int wgpun_DeviceCreateBuffer(
-  int device,
-  ffi.Pointer<WGPUBufferDescriptor> descriptor,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_BufferRelease(
-  int buffer,
-);
-
-@ffi.Native<
-  ffi.Void Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Pointer<ffi.Uint8>,
-    ffi.Uint64,
-  )
->()
-external void wgpun_QueueWriteBuffer(
-  int queue,
-  int buffer,
-  int offset,
-  ffi.Pointer<ffi.Uint8> data,
-  int size,
-);
-
-@ffi.Native<
-  ffi.Void Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Pointer<ffi.Uint8>,
-    ffi.Uint64,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-  )
->()
-external void wgpun_QueueWriteTexture(
-  int queue,
-  int texture,
-  ffi.Pointer<ffi.Uint8> data,
-  int data_size,
-  int bytes_per_row,
-  int width,
-  int height,
-  int depth_or_array_layers,
-  int mip_level,
-  int origin_x,
-  int origin_y,
-  int origin_z,
-  int aspect,
-  int rows_per_image,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUTextureDescriptor>)
->()
-external int wgpun_DeviceCreateTexture(
-  int device,
-  ffi.Pointer<WGPUTextureDescriptor> descriptor,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUTextureViewDescriptor>)
->()
-external int wgpun_TextureCreateView(
-  int texture,
-  ffi.Pointer<WGPUTextureViewDescriptor> descriptor,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_TextureRelease(
-  int texture,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_TextureViewRelease(
-  int view,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUSamplerDescriptor>)
->()
-external int wgpun_DeviceCreateSampler(
-  int device,
-  ffi.Pointer<WGPUSamplerDescriptor> descriptor,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_SamplerRelease(
-  int sampler,
-);
-
 @ffi.Native<
   ffi.Uint64 Function(
     ffi.Uint64,
-    ffi.Pointer<ffi.Uint8>,
+    ffi.Pointer<ffi.Void>,
     ffi.Uint32,
-    ffi.Pointer<ffi.Char>,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
   )
 >()
-external int wgpun_DeviceCreateShaderModule(
-  int device,
-  ffi.Pointer<ffi.Uint8> source,
-  int source_len,
-  ffi.Pointer<ffi.Char> label,
+external int wgpun_DeviceImportIOSurfacePlane(
+  int _device,
+  ffi.Pointer<ffi.Void> _iosurface,
+  int _plane,
+  int _width,
+  int _height,
+  int _format,
 );
 
-@ffi.Native<ffi.Pointer<ffi.Char> Function(ffi.Uint64)>()
-external ffi.Pointer<ffi.Char> wgpun_ShaderModuleGetCompilationInfo(
-  int module,
+@ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>()
+external ffi.Pointer<ffi.Void> wgpun_IOSurfaceRetain(
+  ffi.Pointer<ffi.Void> _iosurface,
 );
 
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_ShaderModuleRelease(
-  int module,
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_IOSurfaceRelease(
+  ffi.Pointer<ffi.Void> _iosurface,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_IOSurfaceRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
 );
 
 @ffi.Native<
@@ -300,119 +78,16 @@ external void wgpun_BindGroupRelease(
 );
 
 @ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUPipelineLayoutDescriptor>)
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUBufferDescriptor>)
 >()
-external int wgpun_DeviceCreatePipelineLayout(
+external int wgpun_DeviceCreateBuffer(
   int device,
-  ffi.Pointer<WGPUPipelineLayoutDescriptor> desc,
+  ffi.Pointer<WGPUBufferDescriptor> descriptor,
 );
 
 @ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_PipelineLayoutRelease(
-  int layout,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPURenderPipelineDescriptor>)
->()
-external int wgpun_DeviceCreateRenderPipeline(
-  int device,
-  ffi.Pointer<WGPURenderPipelineDescriptor> desc,
-);
-
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Uint32)>()
-external int wgpun_RenderPipelineGetBindGroupLayout(
-  int pipeline,
-  int index,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_RenderPipelineRelease(
-  int pipeline,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUComputePipelineDescriptor>)
->()
-external int wgpun_DeviceCreateComputePipeline(
-  int device,
-  ffi.Pointer<WGPUComputePipelineDescriptor> desc,
-);
-
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Uint32)>()
-external int wgpun_ComputePipelineGetBindGroupLayout(
-  int pipeline,
-  int index,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_ComputePipelineRelease(
-  int pipeline,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_BindGroupRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_BindGroupLayoutRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_PipelineLayoutRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_RenderPipelineRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_ComputePipelineRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_SamplerRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_ShaderModuleRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_TextureViewRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_BufferRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_TextureRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_QuerySetRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_FenceRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_BufferMappingRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
+external void wgpun_BufferRelease(
+  int buffer,
 );
 
 @ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
@@ -570,12 +245,652 @@ external int wgpun_CommandEncoderCopyTextureToTexture(
 );
 
 @ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUComputePassDescriptor>)
+>()
+external int wgpun_CommandEncoderBeginComputePass(
+  int encoder,
+  ffi.Pointer<WGPUComputePassDescriptor> descriptor,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
+external void wgpun_ComputePassEncoderSetPipeline(
+  int compute_pass,
+  int pipeline,
+);
+
+@ffi.Native<
+  ffi.Void Function(
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Uint32>,
+    ffi.Uint32,
+  )
+>()
+external void wgpun_ComputePassEncoderSetBindGroup(
+  int compute_pass,
+  int index,
+  int bind_group,
+  ffi.Pointer<ffi.Uint32> dynamic_offsets,
+  int dynamic_offset_count,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Uint32)>()
+external void wgpun_ComputePassEncoderDispatchWorkgroups(
+  int compute_pass,
+  int x,
+  int y,
+  int z,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
+external void wgpun_ComputePassEncoderDispatchWorkgroupsIndirect(
+  int compute_pass,
+  int indirect_buffer,
+  int indirect_offset,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
+external void wgpun_ComputePassEncoderInsertDebugMarker(
+  int compute_pass,
+  ffi.Pointer<ffi.Char> label,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
+external void wgpun_ComputePassEncoderPushDebugGroup(
+  int compute_pass,
+  ffi.Pointer<ffi.Char> label,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_ComputePassEncoderPopDebugGroup(
+  int compute_pass,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Pointer<ffi.Uint8>, ffi.Uint32)
+>()
+external void wgpun_ComputePassEncoderSetImmediates(
+  int compute_pass,
+  int offset,
+  ffi.Pointer<ffi.Uint8> data,
+  int data_len,
+);
+
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
+external int wgpun_ComputePassEncoderEnd(
+  int compute_pass,
+);
+
+/// Create a wgpu instance.
+/// Returns instance handle, or 0 on failure.
+@ffi.Native<ffi.Uint64 Function(ffi.Pointer<WGPUInstanceDescriptor>)>()
+external int wgpun_CreateInstance(
+  ffi.Pointer<WGPUInstanceDescriptor> descriptor,
+);
+
+/// Release an instance.
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_InstanceRelease(
+  int instance,
+);
+
+/// Get WGSL language features supported by this instance.
+/// Returns a bitmask matching GpuWgslLanguageFeatureName enum order.
+@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
+external int wgpun_InstanceGetWGSLLanguageFeatures(
+  int instance,
+);
+
+/// Request an adapter from an instance.
+/// Returns adapter handle, or 0 on failure.
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPURequestAdapterOptions>)
+>()
+external int wgpun_InstanceRequestAdapter(
+  int instance,
+  ffi.Pointer<WGPURequestAdapterOptions> options,
+);
+
+/// Release an adapter.
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_AdapterRelease(
+  int adapter,
+);
+
+/// Get adapter info.
+@ffi.Native<WGPUAdapterInfo Function(ffi.Uint64)>()
+external WGPUAdapterInfo wgpun_AdapterGetInfo(
+  int adapter,
+);
+
+/// Get adapter limits.
+@ffi.Native<WGPUDeviceLimits Function(ffi.Uint64)>()
+external WGPUDeviceLimits wgpun_AdapterGetLimits(
+  int adapter,
+);
+
+/// Get adapter downlevel capability flags as a raw u64 bitmask.
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
+external int wgpun_AdapterGetDownlevelFlags(
+  int adapter,
+);
+
+/// Get adapter features as a bitmask.
+/// Bit positions match GpuFeatureName enum order.
+@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
+external int wgpun_AdapterGetFeatures(
+  int adapter,
+);
+
+/// Request a device from an adapter.
+/// Returns device handle, or 0 on failure.
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUDeviceDescriptor>)
+>()
+external int wgpun_AdapterRequestDevice(
+  int adapter,
+  ffi.Pointer<WGPUDeviceDescriptor> descriptor,
+);
+
+/// Release a device.
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_DeviceRelease(
+  int device,
+);
+
+/// Get the queue for a device.
+/// Returns queue handle (a heap-allocated Arc<Queue> clone).
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
+external int wgpun_DeviceGetQueue(
+  int device,
+);
+
+/// Poll a device for completed work.
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint8)>()
+external void wgpun_DevicePoll(
+  int device,
+  int wait,
+);
+
+/// Get device features as a bitmask.
+/// Bit positions match GpuFeatureName enum order.
+@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
+external int wgpun_DeviceGetFeatures(
+  int device,
+);
+
+/// Get device limits.
+@ffi.Native<WGPUDeviceLimits Function(ffi.Uint64)>()
+external WGPUDeviceLimits wgpun_DeviceGetLimits(
+  int device,
+);
+
+/// Pop one captured device error.
+/// Returns null if the error queue is empty.
+@ffi.Native<ffi.Pointer<ffi.Char> Function(ffi.Uint64)>()
+external ffi.Pointer<ffi.Char> wgpun_DevicePopError(
+  int device,
+);
+
+/// Push an error scope onto the device's error scope stack.
+/// filter: 1 = Validation, 2 = OutOfMemory, 3 = Internal
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint32)>()
+external void wgpun_DevicePushErrorScope(
+  int device,
+  int filter,
+);
+
+/// Pop the top error scope and return the error type + message.
+/// Returns error type: 0 = no error, 1 = Validation, 2 = OutOfMemory, 3 = Internal.
+/// If an error was captured, the message is available via wgpun_DevicePopScopeError.
+@ffi.Native<ffi.Uint32 Function(ffi.Uint64)>()
+external int wgpun_DevicePopErrorScope(
+  int device,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Uint64>, ffi.Uint32)
+>()
+external int wgpun_QueueSubmitFenced(
+  int queue,
+  ffi.Pointer<ffi.Uint64> command_buffers,
+  int count,
+);
+
+@ffi.Native<ffi.Int32 Function(ffi.Uint64, ffi.Uint64)>()
+external int wgpun_FenceStatus(
+  int device,
+  int handle,
+);
+
+@ffi.Native<ffi.Uint32 Function(ffi.Uint64, ffi.Uint64)>()
+external int wgpun_FenceWait(
+  int device,
+  int handle,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_FenceRelease(
+  int handle,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_BindGroupRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_BindGroupLayoutRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_PipelineLayoutRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_RenderPipelineRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_ComputePipelineRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_SamplerRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_ShaderModuleRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_TextureViewRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_BufferRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_TextureRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_QuerySetRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_FenceRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_BufferMappingRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint32,
+  )
+>()
+external int wgpun_BufferMapStart(
+  int device,
+  int buffer,
+  int offset,
+  int size,
+  int mode,
+);
+
+@ffi.Native<ffi.Int32 Function(ffi.Uint64)>()
+external int wgpun_BufferMapStatus(
+  int handle,
+);
+
+@ffi.Native<ffi.Pointer<ffi.Uint8> Function(ffi.Uint64)>()
+external ffi.Pointer<ffi.Uint8> wgpun_BufferMapGetPointer(
+  int handle,
+);
+
+@ffi.Native<ffi.Pointer<ffi.Uint8> Function(ffi.Uint64)>()
+external ffi.Pointer<ffi.Uint8> wgpun_BufferMapGetPointerMut(
+  int handle,
+);
+
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
+external int wgpun_BufferMapGetSize(
+  int handle,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
+external void wgpun_BufferUnmap(
+  int handle,
+  int _original_buffer_id,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUPipelineLayoutDescriptor>)
+>()
+external int wgpun_DeviceCreatePipelineLayout(
+  int device,
+  ffi.Pointer<WGPUPipelineLayoutDescriptor> desc,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_PipelineLayoutRelease(
+  int layout,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPURenderPipelineDescriptor>)
+>()
+external int wgpun_DeviceCreateRenderPipeline(
+  int device,
+  ffi.Pointer<WGPURenderPipelineDescriptor> desc,
+);
+
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Uint32)>()
+external int wgpun_RenderPipelineGetBindGroupLayout(
+  int pipeline,
+  int index,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_RenderPipelineRelease(
+  int pipeline,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUComputePipelineDescriptor>)
+>()
+external int wgpun_DeviceCreateComputePipeline(
+  int device,
+  ffi.Pointer<WGPUComputePipelineDescriptor> desc,
+);
+
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Uint32)>()
+external int wgpun_ComputePipelineGetBindGroupLayout(
+  int pipeline,
+  int index,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_ComputePipelineRelease(
+  int pipeline,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Pointer<ffi.Char>)
+>()
+external int wgpun_DeviceCreateQuerySet(
+  int device,
+  int query_type,
+  int count,
+  ffi.Pointer<ffi.Char> label,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_QuerySetRelease(
+  int query_set,
+);
+
+@ffi.Native<ffi.Uint8 Function(ffi.Uint64, ffi.Uint64, ffi.Uint32)>()
+external int wgpun_CommandEncoderWriteTimestamp(
+  int encoder,
+  int query_set,
+  int query_index,
+);
+
+@ffi.Native<
+  ffi.Uint8 Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint64,
+    ffi.Uint64,
+  )
+>()
+external int wgpun_CommandEncoderResolveQuerySet(
+  int encoder,
+  int query_set,
+  int first_query,
+  int query_count,
+  int destination,
+  int destination_offset,
+);
+
+@ffi.Native<ffi.Float Function(ffi.Uint64)>()
+external double wgpun_QueueGetTimestampPeriod(
+  int queue,
+);
+
+@ffi.Native<
   ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Uint64>, ffi.Uint32)
 >()
 external void wgpun_QueueSubmit(
   int queue,
   ffi.Pointer<ffi.Uint64> command_buffers,
   int count,
+);
+
+@ffi.Native<
+  ffi.Void Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Uint8>,
+    ffi.Uint64,
+  )
+>()
+external void wgpun_QueueWriteBuffer(
+  int queue,
+  int buffer,
+  int offset,
+  ffi.Pointer<ffi.Uint8> data,
+  int size,
+);
+
+@ffi.Native<
+  ffi.Void Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Uint8>,
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+  )
+>()
+external void wgpun_QueueWriteTexture(
+  int queue,
+  int texture,
+  ffi.Pointer<ffi.Uint8> data,
+  int data_size,
+  int bytes_per_row,
+  int width,
+  int height,
+  int depth_or_array_layers,
+  int mip_level,
+  int origin_x,
+  int origin_y,
+  int origin_z,
+  int aspect,
+  int rows_per_image,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Uint8>,
+  )
+>()
+external int wgpun_BufferReadSync(
+  int device,
+  int buffer,
+  int offset,
+  int size,
+  ffi.Pointer<ffi.Uint8> output,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Pointer<WGPURenderBundleEncoderDescriptor>,
+  )
+>()
+external int wgpun_DeviceCreateRenderBundleEncoder(
+  int device,
+  ffi.Pointer<WGPURenderBundleEncoderDescriptor> descriptor,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
+external void wgpun_RenderBundleEncoderSetPipeline(
+  int encoder,
+  int pipeline,
+);
+
+@ffi.Native<
+  ffi.Void Function(
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Uint32>,
+    ffi.Uint32,
+  )
+>()
+external void wgpun_RenderBundleEncoderSetBindGroup(
+  int encoder,
+  int index,
+  int bind_group,
+  ffi.Pointer<ffi.Uint32> dynamic_offsets,
+  int dynamic_offset_count,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint64, ffi.Uint64, ffi.Uint64)
+>()
+external void wgpun_RenderBundleEncoderSetVertexBuffer(
+  int encoder,
+  int slot,
+  int buffer,
+  int offset,
+  int size,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint32, ffi.Uint64, ffi.Uint64)
+>()
+external void wgpun_RenderBundleEncoderSetIndexBuffer(
+  int encoder,
+  int buffer,
+  int format,
+  int offset,
+  int size,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Uint32, ffi.Uint32)
+>()
+external void wgpun_RenderBundleEncoderDraw(
+  int encoder,
+  int vertex_count,
+  int instance_count,
+  int first_vertex,
+  int first_instance,
+);
+
+@ffi.Native<
+  ffi.Void Function(
+    ffi.Uint64,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Int32,
+    ffi.Uint32,
+  )
+>()
+external void wgpun_RenderBundleEncoderDrawIndexed(
+  int encoder,
+  int index_count,
+  int instance_count,
+  int first_index,
+  int base_vertex,
+  int first_instance,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
+external void wgpun_RenderBundleEncoderDrawIndirect(
+  int encoder,
+  int indirect_buffer,
+  int indirect_offset,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
+external void wgpun_RenderBundleEncoderDrawIndexedIndirect(
+  int encoder,
+  int indirect_buffer,
+  int indirect_offset,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Pointer<ffi.Uint8>, ffi.Uint32)
+>()
+external void wgpun_RenderBundleEncoderSetImmediates(
+  int encoder,
+  int offset,
+  ffi.Pointer<ffi.Uint8> data,
+  int data_len,
+);
+
+@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
+external int wgpun_RenderBundleEncoderFinish(
+  int encoder,
+  ffi.Pointer<ffi.Char> label,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Uint64>, ffi.Uint32)
+>()
+external void wgpun_RenderPassExecuteBundles(
+  int render_pass,
+  ffi.Pointer<ffi.Uint64> bundles,
+  int count,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_RenderBundleRelease(
+  int bundle,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_RenderBundleRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
 );
 
 @ffi.Native<
@@ -776,348 +1091,41 @@ external int wgpun_RenderPassEncoderEnd(
 );
 
 @ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUComputePassDescriptor>)
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUSamplerDescriptor>)
 >()
-external int wgpun_CommandEncoderBeginComputePass(
-  int encoder,
-  ffi.Pointer<WGPUComputePassDescriptor> descriptor,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
-external void wgpun_ComputePassEncoderSetPipeline(
-  int compute_pass,
-  int pipeline,
-);
-
-@ffi.Native<
-  ffi.Void Function(
-    ffi.Uint64,
-    ffi.Uint32,
-    ffi.Uint64,
-    ffi.Pointer<ffi.Uint32>,
-    ffi.Uint32,
-  )
->()
-external void wgpun_ComputePassEncoderSetBindGroup(
-  int compute_pass,
-  int index,
-  int bind_group,
-  ffi.Pointer<ffi.Uint32> dynamic_offsets,
-  int dynamic_offset_count,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Uint32)>()
-external void wgpun_ComputePassEncoderDispatchWorkgroups(
-  int compute_pass,
-  int x,
-  int y,
-  int z,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
-external void wgpun_ComputePassEncoderDispatchWorkgroupsIndirect(
-  int compute_pass,
-  int indirect_buffer,
-  int indirect_offset,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
-external void wgpun_ComputePassEncoderInsertDebugMarker(
-  int compute_pass,
-  ffi.Pointer<ffi.Char> label,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
-external void wgpun_ComputePassEncoderPushDebugGroup(
-  int compute_pass,
-  ffi.Pointer<ffi.Char> label,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_ComputePassEncoderPopDebugGroup(
-  int compute_pass,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Pointer<ffi.Uint8>, ffi.Uint32)
->()
-external void wgpun_ComputePassEncoderSetImmediates(
-  int compute_pass,
-  int offset,
-  ffi.Pointer<ffi.Uint8> data,
-  int data_len,
-);
-
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
-external int wgpun_ComputePassEncoderEnd(
-  int compute_pass,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(
-    ffi.Uint64,
-    ffi.Pointer<WGPURenderBundleEncoderDescriptor>,
-  )
->()
-external int wgpun_DeviceCreateRenderBundleEncoder(
+external int wgpun_DeviceCreateSampler(
   int device,
-  ffi.Pointer<WGPURenderBundleEncoderDescriptor> descriptor,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
-external void wgpun_RenderBundleEncoderSetPipeline(
-  int encoder,
-  int pipeline,
-);
-
-@ffi.Native<
-  ffi.Void Function(
-    ffi.Uint64,
-    ffi.Uint32,
-    ffi.Uint64,
-    ffi.Pointer<ffi.Uint32>,
-    ffi.Uint32,
-  )
->()
-external void wgpun_RenderBundleEncoderSetBindGroup(
-  int encoder,
-  int index,
-  int bind_group,
-  ffi.Pointer<ffi.Uint32> dynamic_offsets,
-  int dynamic_offset_count,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint64, ffi.Uint64, ffi.Uint64)
->()
-external void wgpun_RenderBundleEncoderSetVertexBuffer(
-  int encoder,
-  int slot,
-  int buffer,
-  int offset,
-  int size,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint32, ffi.Uint64, ffi.Uint64)
->()
-external void wgpun_RenderBundleEncoderSetIndexBuffer(
-  int encoder,
-  int buffer,
-  int format,
-  int offset,
-  int size,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Uint32, ffi.Uint32)
->()
-external void wgpun_RenderBundleEncoderDraw(
-  int encoder,
-  int vertex_count,
-  int instance_count,
-  int first_vertex,
-  int first_instance,
-);
-
-@ffi.Native<
-  ffi.Void Function(
-    ffi.Uint64,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Int32,
-    ffi.Uint32,
-  )
->()
-external void wgpun_RenderBundleEncoderDrawIndexed(
-  int encoder,
-  int index_count,
-  int instance_count,
-  int first_index,
-  int base_vertex,
-  int first_instance,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
-external void wgpun_RenderBundleEncoderDrawIndirect(
-  int encoder,
-  int indirect_buffer,
-  int indirect_offset,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64, ffi.Uint64)>()
-external void wgpun_RenderBundleEncoderDrawIndexedIndirect(
-  int encoder,
-  int indirect_buffer,
-  int indirect_offset,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Uint32, ffi.Pointer<ffi.Uint8>, ffi.Uint32)
->()
-external void wgpun_RenderBundleEncoderSetImmediates(
-  int encoder,
-  int offset,
-  ffi.Pointer<ffi.Uint8> data,
-  int data_len,
-);
-
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Char>)>()
-external int wgpun_RenderBundleEncoderFinish(
-  int encoder,
-  ffi.Pointer<ffi.Char> label,
-);
-
-@ffi.Native<
-  ffi.Void Function(ffi.Uint64, ffi.Pointer<ffi.Uint64>, ffi.Uint32)
->()
-external void wgpun_RenderPassExecuteBundles(
-  int render_pass,
-  ffi.Pointer<ffi.Uint64> bundles,
-  int count,
+  ffi.Pointer<WGPUSamplerDescriptor> descriptor,
 );
 
 @ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_RenderBundleRelease(
-  int bundle,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
-external void wgpun_RenderBundleRelease_p(
-  ffi.Pointer<ffi.Void> ptr,
+external void wgpun_SamplerRelease(
+  int sampler,
 );
 
 @ffi.Native<
   ffi.Uint64 Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
     ffi.Uint64,
     ffi.Pointer<ffi.Uint8>,
+    ffi.Uint32,
+    ffi.Pointer<ffi.Char>,
   )
 >()
-external int wgpun_BufferReadSync(
+external int wgpun_DeviceCreateShaderModule(
   int device,
-  int buffer,
-  int offset,
-  int size,
-  ffi.Pointer<ffi.Uint8> output,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Uint32, ffi.Uint32, ffi.Pointer<ffi.Char>)
->()
-external int wgpun_DeviceCreateQuerySet(
-  int device,
-  int query_type,
-  int count,
+  ffi.Pointer<ffi.Uint8> source,
+  int source_len,
   ffi.Pointer<ffi.Char> label,
 );
 
-@ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_QuerySetRelease(
-  int query_set,
-);
-
-@ffi.Native<ffi.Uint8 Function(ffi.Uint64, ffi.Uint64, ffi.Uint32)>()
-external int wgpun_CommandEncoderWriteTimestamp(
-  int encoder,
-  int query_set,
-  int query_index,
-);
-
-@ffi.Native<
-  ffi.Uint8 Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint32,
-    ffi.Uint32,
-    ffi.Uint64,
-    ffi.Uint64,
-  )
->()
-external int wgpun_CommandEncoderResolveQuerySet(
-  int encoder,
-  int query_set,
-  int first_query,
-  int query_count,
-  int destination,
-  int destination_offset,
-);
-
-@ffi.Native<ffi.Float Function(ffi.Uint64)>()
-external double wgpun_QueueGetTimestampPeriod(
-  int queue,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint64,
-    ffi.Uint32,
-  )
->()
-external int wgpun_BufferMapStart(
-  int device,
-  int buffer,
-  int offset,
-  int size,
-  int mode,
-);
-
-@ffi.Native<ffi.Int32 Function(ffi.Uint64)>()
-external int wgpun_BufferMapStatus(
-  int handle,
-);
-
-@ffi.Native<ffi.Pointer<ffi.Uint8> Function(ffi.Uint64)>()
-external ffi.Pointer<ffi.Uint8> wgpun_BufferMapGetPointer(
-  int handle,
-);
-
-@ffi.Native<ffi.Pointer<ffi.Uint8> Function(ffi.Uint64)>()
-external ffi.Pointer<ffi.Uint8> wgpun_BufferMapGetPointerMut(
-  int handle,
-);
-
-@ffi.Native<ffi.Uint64 Function(ffi.Uint64)>()
-external int wgpun_BufferMapGetSize(
-  int handle,
-);
-
-@ffi.Native<ffi.Void Function(ffi.Uint64, ffi.Uint64)>()
-external void wgpun_BufferUnmap(
-  int handle,
-  int _original_buffer_id,
-);
-
-@ffi.Native<
-  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Uint64>, ffi.Uint32)
->()
-external int wgpun_QueueSubmitFenced(
-  int queue,
-  ffi.Pointer<ffi.Uint64> command_buffers,
-  int count,
-);
-
-@ffi.Native<ffi.Int32 Function(ffi.Uint64, ffi.Uint64)>()
-external int wgpun_FenceStatus(
-  int device,
-  int handle,
-);
-
-@ffi.Native<ffi.Uint32 Function(ffi.Uint64, ffi.Uint64)>()
-external int wgpun_FenceWait(
-  int device,
-  int handle,
+@ffi.Native<ffi.Pointer<ffi.Char> Function(ffi.Uint64)>()
+external ffi.Pointer<ffi.Char> wgpun_ShaderModuleGetCompilationInfo(
+  int module,
 );
 
 @ffi.Native<ffi.Void Function(ffi.Uint64)>()
-external void wgpun_FenceRelease(
-  int handle,
+external void wgpun_ShaderModuleRelease(
+  int module,
 );
 
 /// Create a render surface with platform texture sharing.
@@ -1146,7 +1154,7 @@ external int wgpu_get_surface_handle(
   int surface_id,
 );
 
-/// Get the pixel buffer pointer for a surface (Windows only).
+/// Get the pixel buffer pointer for a surface (Windows/Linux).
 @ffi.Native<ffi.Pointer<ffi.Uint8> Function(ffi.Uint64)>()
 external ffi.Pointer<ffi.Uint8> wgpu_get_pixel_buffer_ptr(
   int surface_id,
@@ -1267,6 +1275,135 @@ external void wgpu_swapchain_destroy(
   int surface_id,
 );
 
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUTextureDescriptor>)
+>()
+external int wgpun_DeviceCreateTexture(
+  int device,
+  ffi.Pointer<WGPUTextureDescriptor> descriptor,
+);
+
+@ffi.Native<
+  ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUTextureViewDescriptor>)
+>()
+external int wgpun_TextureCreateView(
+  int texture,
+  ffi.Pointer<WGPUTextureViewDescriptor> descriptor,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_TextureRelease(
+  int texture,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Uint64)>()
+external void wgpun_TextureViewRelease(
+  int view,
+);
+
+final class WGPUBindGroupLayoutEntry extends ffi.Struct {
+  @ffi.Uint32()
+  external int binding;
+
+  @ffi.Uint32()
+  external int visibility;
+
+  @ffi.Uint32()
+  external int binding_type;
+
+  @ffi.Uint32()
+  external int buffer_type;
+
+  @ffi.Uint8()
+  external int has_dynamic_offset;
+
+  @ffi.Uint64()
+  external int min_binding_size;
+
+  @ffi.Uint32()
+  external int sampler_type;
+
+  @ffi.Uint32()
+  external int texture_sample_type;
+
+  @ffi.Uint32()
+  external int texture_view_dimension;
+
+  @ffi.Uint8()
+  external int texture_multisampled;
+
+  /// Number of elements for binding arrays (0 = not an array).
+  @ffi.Uint32()
+  external int count;
+}
+
+final class WGPUBindGroupLayoutDescriptor extends ffi.Struct {
+  external ffi.Pointer<WGPUBindGroupLayoutEntry> entries;
+
+  @ffi.Uint32()
+  external int entry_count;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
+final class WGPUBindGroupEntry extends ffi.Struct {
+  @ffi.Uint32()
+  external int binding;
+
+  @ffi.Uint32()
+  external int resource_type;
+
+  @ffi.Uint64()
+  external int resource;
+
+  @ffi.Uint64()
+  external int offset;
+
+  @ffi.Uint64()
+  external int size;
+}
+
+final class WGPUBindGroupDescriptor extends ffi.Struct {
+  @ffi.Uint64()
+  external int layout;
+
+  external ffi.Pointer<WGPUBindGroupEntry> entries;
+
+  @ffi.Uint32()
+  external int entry_count;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
+final class WGPUBufferDescriptor extends ffi.Struct {
+  @ffi.Uint64()
+  external int size;
+
+  @ffi.Uint32()
+  external int usage;
+
+  @ffi.Uint8()
+  external int mapped_at_creation;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
+final class WGPUComputePassDescriptor extends ffi.Struct {
+  /// Timestamp writes query set handle (0 = none).
+  @ffi.Uint64()
+  external int timestamp_writes_query_set;
+
+  /// Query index for beginning timestamp.
+  @ffi.Uint32()
+  external int timestamp_writes_beginning;
+
+  /// Query index for end timestamp.
+  @ffi.Uint32()
+  external int timestamp_writes_end;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
 final class WGPUInstanceDescriptor extends ffi.Struct {
   @ffi.Uint8()
   external int validation;
@@ -1274,7 +1411,7 @@ final class WGPUInstanceDescriptor extends ffi.Struct {
   @ffi.Uint8()
   external int gpu_based_validation;
 
-  /// Backend bitmask: Vulkan=1, GL=2, Metal=4, DX12=8, BrowserWebGpu=16.
+  /// Backend bitmask: Noop=1, Vulkan=2, Metal=4, DX12=8, GL=16, BrowserWebGpu=32.
   /// 0 = all backends (default).
   @ffi.Uint32()
   external int backends;
@@ -1428,189 +1565,6 @@ final class WGPUDeviceDescriptor extends ffi.Struct {
   /// If non-zero, request IMMEDIATES feature (push constants).
   @ffi.Uint8()
   external int immediates;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUBufferDescriptor extends ffi.Struct {
-  @ffi.Uint64()
-  external int size;
-
-  @ffi.Uint32()
-  external int usage;
-
-  @ffi.Uint8()
-  external int mapped_at_creation;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUTextureDescriptor extends ffi.Struct {
-  @ffi.Uint32()
-  external int width;
-
-  @ffi.Uint32()
-  external int height;
-
-  @ffi.Uint32()
-  external int depth_or_array_layers;
-
-  @ffi.Uint32()
-  external int mip_level_count;
-
-  @ffi.Uint32()
-  external int sample_count;
-
-  @ffi.Uint32()
-  external int dimension;
-
-  @ffi.Uint32()
-  external int format;
-
-  @ffi.Uint32()
-  external int usage;
-
-  @ffi.Uint32()
-  external int view_format_count;
-
-  external ffi.Pointer<ffi.Uint32> view_formats;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUTextureViewDescriptor extends ffi.Struct {
-  @ffi.Uint32()
-  external int format;
-
-  @ffi.Uint32()
-  external int dimension;
-
-  @ffi.Uint32()
-  external int base_mip_level;
-
-  @ffi.Uint32()
-  external int mip_level_count;
-
-  @ffi.Uint32()
-  external int base_array_layer;
-
-  @ffi.Uint32()
-  external int array_layer_count;
-
-  @ffi.Uint32()
-  external int aspect;
-
-  /// TextureUsages flags (0 = inherit from texture).
-  @ffi.Uint32()
-  external int usage;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUSamplerDescriptor extends ffi.Struct {
-  @ffi.Uint32()
-  external int address_mode_u;
-
-  @ffi.Uint32()
-  external int address_mode_v;
-
-  @ffi.Uint32()
-  external int address_mode_w;
-
-  @ffi.Uint32()
-  external int mag_filter;
-
-  @ffi.Uint32()
-  external int min_filter;
-
-  @ffi.Uint32()
-  external int mipmap_filter;
-
-  @ffi.Float()
-  external double lod_min_clamp;
-
-  @ffi.Float()
-  external double lod_max_clamp;
-
-  @ffi.Uint32()
-  external int compare;
-
-  @ffi.Uint16()
-  external int max_anisotropy;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUBindGroupLayoutEntry extends ffi.Struct {
-  @ffi.Uint32()
-  external int binding;
-
-  @ffi.Uint32()
-  external int visibility;
-
-  @ffi.Uint32()
-  external int binding_type;
-
-  @ffi.Uint32()
-  external int buffer_type;
-
-  @ffi.Uint8()
-  external int has_dynamic_offset;
-
-  @ffi.Uint64()
-  external int min_binding_size;
-
-  @ffi.Uint32()
-  external int sampler_type;
-
-  @ffi.Uint32()
-  external int texture_sample_type;
-
-  @ffi.Uint32()
-  external int texture_view_dimension;
-
-  @ffi.Uint8()
-  external int texture_multisampled;
-
-  /// Number of elements for binding arrays (0 = not an array).
-  @ffi.Uint32()
-  external int count;
-}
-
-final class WGPUBindGroupLayoutDescriptor extends ffi.Struct {
-  external ffi.Pointer<WGPUBindGroupLayoutEntry> entries;
-
-  @ffi.Uint32()
-  external int entry_count;
-
-  external ffi.Pointer<ffi.Char> label;
-}
-
-final class WGPUBindGroupEntry extends ffi.Struct {
-  @ffi.Uint32()
-  external int binding;
-
-  @ffi.Uint32()
-  external int resource_type;
-
-  @ffi.Uint64()
-  external int resource;
-
-  @ffi.Uint64()
-  external int offset;
-
-  @ffi.Uint64()
-  external int size;
-}
-
-final class WGPUBindGroupDescriptor extends ffi.Struct {
-  @ffi.Uint64()
-  external int layout;
-
-  external ffi.Pointer<WGPUBindGroupEntry> entries;
-
-  @ffi.Uint32()
-  external int entry_count;
 
   external ffi.Pointer<ffi.Char> label;
 }
@@ -1828,6 +1782,27 @@ final class WGPUComputePipelineDescriptor extends ffi.Struct {
   external ffi.Pointer<ffi.Char> label;
 }
 
+final class WGPURenderBundleEncoderDescriptor extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint32> color_formats;
+
+  @ffi.Uint32()
+  external int color_format_count;
+
+  @ffi.Uint32()
+  external int depth_stencil_format;
+
+  @ffi.Uint32()
+  external int sample_count;
+
+  @ffi.Uint8()
+  external int depth_read_only;
+
+  @ffi.Uint8()
+  external int stencil_read_only;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
 final class WGPURenderPassColorAttachment extends ffi.Struct {
   @ffi.Uint64()
   external int view;
@@ -1918,39 +1893,98 @@ final class WGPURenderPassDescriptor extends ffi.Struct {
   external ffi.Pointer<ffi.Char> label;
 }
 
-final class WGPUComputePassDescriptor extends ffi.Struct {
-  /// Timestamp writes query set handle (0 = none).
-  @ffi.Uint64()
-  external int timestamp_writes_query_set;
-
-  /// Query index for beginning timestamp.
+final class WGPUSamplerDescriptor extends ffi.Struct {
   @ffi.Uint32()
-  external int timestamp_writes_beginning;
+  external int address_mode_u;
 
-  /// Query index for end timestamp.
   @ffi.Uint32()
-  external int timestamp_writes_end;
+  external int address_mode_v;
+
+  @ffi.Uint32()
+  external int address_mode_w;
+
+  @ffi.Uint32()
+  external int mag_filter;
+
+  @ffi.Uint32()
+  external int min_filter;
+
+  @ffi.Uint32()
+  external int mipmap_filter;
+
+  @ffi.Float()
+  external double lod_min_clamp;
+
+  @ffi.Float()
+  external double lod_max_clamp;
+
+  @ffi.Uint32()
+  external int compare;
+
+  @ffi.Uint16()
+  external int max_anisotropy;
 
   external ffi.Pointer<ffi.Char> label;
 }
 
-final class WGPURenderBundleEncoderDescriptor extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint32> color_formats;
+final class WGPUTextureDescriptor extends ffi.Struct {
+  @ffi.Uint32()
+  external int width;
 
   @ffi.Uint32()
-  external int color_format_count;
+  external int height;
 
   @ffi.Uint32()
-  external int depth_stencil_format;
+  external int depth_or_array_layers;
+
+  @ffi.Uint32()
+  external int mip_level_count;
 
   @ffi.Uint32()
   external int sample_count;
 
-  @ffi.Uint8()
-  external int depth_read_only;
+  @ffi.Uint32()
+  external int dimension;
 
-  @ffi.Uint8()
-  external int stencil_read_only;
+  @ffi.Uint32()
+  external int format;
+
+  @ffi.Uint32()
+  external int usage;
+
+  @ffi.Uint32()
+  external int view_format_count;
+
+  external ffi.Pointer<ffi.Uint32> view_formats;
+
+  external ffi.Pointer<ffi.Char> label;
+}
+
+final class WGPUTextureViewDescriptor extends ffi.Struct {
+  @ffi.Uint32()
+  external int format;
+
+  @ffi.Uint32()
+  external int dimension;
+
+  @ffi.Uint32()
+  external int base_mip_level;
+
+  @ffi.Uint32()
+  external int mip_level_count;
+
+  @ffi.Uint32()
+  external int base_array_layer;
+
+  @ffi.Uint32()
+  external int array_layer_count;
+
+  @ffi.Uint32()
+  external int aspect;
+
+  /// TextureUsages flags (0 = inherit from texture).
+  @ffi.Uint32()
+  external int usage;
 
   external ffi.Pointer<ffi.Char> label;
 }

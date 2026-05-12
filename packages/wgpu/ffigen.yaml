@@ -5,7 +5,6 @@ name: WgpuNativeBindings
 description: Auto-generated FFI bindings for wgpu_native
 output: lib/src/ffi/bindings_generated.dart
 
-# Use @Native annotations for Native Assets integration
 ffi-native:
   asset-id: 'package:wgpu/wgpu_native'
 
@@ -18,10 +17,8 @@ comments:
   style: any
   length: full
 
-# Include wgpu functions (both legacy wgpu_* and new wgpu* style)
 functions:
   include:
-    - 'wgpu_.*'
     - 'wgpun_.*'
     - 'naga_.*'
 

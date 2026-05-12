@@ -1,13 +1,4 @@
-// Cross-platform swapchain surface for direct rendering (no Flutter interop)
-//
-// Creates a wgpu Surface from a native window handle for SDL, GLFW, etc.
-// True zero-copy: GPU renders directly to the window's swapchain.
-//
-// Platform details:
-// - Windows: HWND → Win32WindowHandle
-// - macOS:   NSWindow → contentView → AppKitWindowHandle
-
-use super::create_depth_texture;
+use crate::surface::create_depth_texture;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use std::sync::Arc;
 

@@ -22,13 +22,94 @@
 
 #define MAP_STATUS_ERROR -1
 
+typedef uint64_t WGPUTexture;
+
+typedef uint64_t WGPUDevice;
+
+typedef uint64_t WGPUBindGroupLayout;
+
+typedef struct WGPUBindGroupLayoutEntry {
+  uint32_t binding;
+  uint32_t visibility;
+  uint32_t binding_type;
+  uint32_t buffer_type;
+  uint8_t has_dynamic_offset;
+  uint64_t min_binding_size;
+  uint32_t sampler_type;
+  uint32_t texture_sample_type;
+  uint32_t texture_view_dimension;
+  uint8_t texture_multisampled;
+  /**
+   * Number of elements for binding arrays (0 = not an array).
+   */
+  uint32_t count;
+} WGPUBindGroupLayoutEntry;
+
+typedef struct WGPUBindGroupLayoutDescriptor {
+  const struct WGPUBindGroupLayoutEntry *entries;
+  uint32_t entry_count;
+  const char *label;
+} WGPUBindGroupLayoutDescriptor;
+
+typedef uint64_t WGPUBindGroup;
+
+typedef struct WGPUBindGroupEntry {
+  uint32_t binding;
+  uint32_t resource_type;
+  uint64_t resource;
+  uint64_t offset;
+  uint64_t size;
+} WGPUBindGroupEntry;
+
+typedef struct WGPUBindGroupDescriptor {
+  WGPUBindGroupLayout layout;
+  const struct WGPUBindGroupEntry *entries;
+  uint32_t entry_count;
+  const char *label;
+} WGPUBindGroupDescriptor;
+
+typedef uint64_t WGPUBuffer;
+
+typedef struct WGPUBufferDescriptor {
+  uint64_t size;
+  uint32_t usage;
+  uint8_t mapped_at_creation;
+  const char *label;
+} WGPUBufferDescriptor;
+
+typedef uint64_t WGPUCommandEncoder;
+
+typedef uint64_t WGPUCommandBuffer;
+
+typedef uint64_t WGPUComputePassEncoder;
+
+typedef uint64_t WGPUQuerySet;
+
+typedef struct WGPUComputePassDescriptor {
+  /**
+   * Timestamp writes query set handle (0 = none).
+   */
+  WGPUQuerySet timestamp_writes_query_set;
+  /**
+   * Query index for beginning timestamp.
+   */
+  uint32_t timestamp_writes_beginning;
+  /**
+   * Query index for end timestamp.
+   */
+  uint32_t timestamp_writes_end;
+  const char *label;
+} WGPUComputePassDescriptor;
+
+typedef uint64_t WGPUComputePipeline;
+
 typedef uint64_t WGPUInstance;
 
 typedef struct WGPUInstanceDescriptor {
   uint8_t validation;
   uint8_t gpu_based_validation;
   /**
-   * Backend bitmask: Vulkan=1, GL=2, Metal=4, DX12=8, BrowserWebGpu=16.
+   * Backend bitmask: Noop=1, Vulkan=2, Metal=4, DX12=8, GL=16, BrowserWebGpu=32.
    * 0 = all backends (default).
    */
   uint32_t backends;
@@ -94,8 +175,6 @@ typedef struct WGPUDeviceLimits {
   uint32_t max_immediate_size;
 } WGPUDeviceLimits;
 
-typedef uint64_t WGPUDevice;
-
 typedef struct WGPUDeviceDescriptor {
   /**
    * Bitmask of required features (bit positions match GpuFeatureName enum order).
@@ -118,107 +197,9 @@ typedef struct WGPUDeviceDescriptor {
 
 typedef uint64_t WGPUQueue;
 
-typedef uint64_t WGPUBuffer;
+typedef uint64_t WGPUFence;
 
-typedef struct WGPUBufferDescriptor {
-  uint64_t size;
-  uint32_t usage;
-  uint8_t mapped_at_creation;
-  const char *label;
-} WGPUBufferDescriptor;
-
-typedef uint64_t WGPUTexture;
-
-typedef struct WGPUTextureDescriptor {
-  uint32_t width;
-  uint32_t height;
-  uint32_t depth_or_array_layers;
-  uint32_t mip_level_count;
-  uint32_t sample_count;
-  uint32_t dimension;
-  uint32_t format;
-  uint32_t usage;
-  uint32_t view_format_count;
-  const uint32_t *view_formats;
-  const char *label;
-} WGPUTextureDescriptor;
-
-typedef uint64_t WGPUTextureView;
-
-typedef struct WGPUTextureViewDescriptor {
-  uint32_t format;
-  uint32_t dimension;
-  uint32_t base_mip_level;
-  uint32_t mip_level_count;
-  uint32_t base_array_layer;
-  uint32_t array_layer_count;
-  uint32_t aspect;
-  /**
-   * TextureUsages flags (0 = inherit from texture).
-   */
-  uint32_t usage;
-  const char *label;
-} WGPUTextureViewDescriptor;
-
-typedef uint64_t WGPUSampler;
-
-typedef struct WGPUSamplerDescriptor {
-  uint32_t address_mode_u;
-  uint32_t address_mode_v;
-  uint32_t address_mode_w;
-  uint32_t mag_filter;
-  uint32_t min_filter;
-  uint32_t mipmap_filter;
-  float lod_min_clamp;
-  float lod_max_clamp;
-  uint32_t compare;
-  uint16_t max_anisotropy;
-  const char *label;
-} WGPUSamplerDescriptor;
-
-typedef uint64_t WGPUShaderModule;
-
-typedef uint64_t WGPUBindGroupLayout;
-
-typedef struct WGPUBindGroupLayoutEntry {
-  uint32_t binding;
-  uint32_t visibility;
-  uint32_t binding_type;
-  uint32_t buffer_type;
-  uint8_t has_dynamic_offset;
-  uint64_t min_binding_size;
-  uint32_t sampler_type;
-  uint32_t texture_sample_type;
-  uint32_t texture_view_dimension;
-  uint8_t texture_multisampled;
-  /**
-   * Number of elements for binding arrays (0 = not an array).
-   */
-  uint32_t count;
-} WGPUBindGroupLayoutEntry;
-
-typedef struct WGPUBindGroupLayoutDescriptor {
-  const struct WGPUBindGroupLayoutEntry *entries;
-  uint32_t entry_count;
-  const char *label;
-} WGPUBindGroupLayoutDescriptor;
-
-typedef uint64_t WGPUBindGroup;
-
-typedef struct WGPUBindGroupEntry {
-  uint32_t binding;
-  uint32_t resource_type;
-  uint64_t resource;
-  uint64_t offset;
-  uint64_t size;
-} WGPUBindGroupEntry;
-
-typedef struct WGPUBindGroupDescriptor {
-  WGPUBindGroupLayout layout;
-  const struct WGPUBindGroupEntry *entries;
-  uint32_t entry_count;
-  const char *label;
-} WGPUBindGroupDescriptor;
+typedef uint64_t WGPUBufferMapping;
 
 typedef uint64_t WGPUPipelineLayout;
 
@@ -233,6 +214,8 @@ typedef struct WGPUPipelineLayoutDescriptor {
 } WGPUPipelineLayoutDescriptor;
 
 typedef uint64_t WGPURenderPipeline;
+
+typedef uint64_t WGPUShaderModule;
 
 typedef struct WGPUVertexAttribute {
   uint32_t format;
@@ -317,8 +300,6 @@ typedef struct WGPURenderPipelineDescriptor {
   const char *label;
 } WGPURenderPipelineDescriptor;
 
-typedef uint64_t WGPUComputePipeline;
-
 typedef struct WGPUComputePipelineDescriptor {
   WGPUPipelineLayout layout;
   WGPUShaderModule module;
@@ -338,11 +319,23 @@ typedef struct WGPUComputePipelineDescriptor {
   const char *label;
 } WGPUComputePipelineDescriptor;
 
-typedef uint64_t WGPUCommandEncoder;
+typedef uint64_t WGPURenderBundleEncoder;
 
-typedef uint64_t WGPUCommandBuffer;
+typedef struct WGPURenderBundleEncoderDescriptor {
+  const uint32_t *color_formats;
+  uint32_t color_format_count;
+  uint32_t depth_stencil_format;
+  uint32_t sample_count;
+  uint8_t depth_read_only;
+  uint8_t stencil_read_only;
+  const char *label;
+} WGPURenderBundleEncoderDescriptor;
+
+typedef uint64_t WGPURenderBundle;
 
 typedef uint64_t WGPURenderPassEncoder;
+
+typedef uint64_t WGPUTextureView;
 
 typedef struct WGPURenderPassColorAttachment {
   WGPUTextureView view;
@@ -371,8 +364,6 @@ typedef struct WGPURenderPassDepthStencilAttachment {
   uint8_t stencil_read_only;
 } WGPURenderPassDepthStencilAttachment;
 
-typedef uint64_t WGPUQuerySet;
-
 typedef struct WGPURenderPassDescriptor {
   const struct WGPURenderPassColorAttachment *color_attachments;
   uint32_t color_attachment_count;
@@ -397,46 +388,241 @@ typedef struct WGPURenderPassDescriptor {
   const char *label;
 } WGPURenderPassDescriptor;
 
-typedef uint64_t WGPUComputePassEncoder;
+typedef uint64_t WGPUSampler;
 
-typedef struct WGPUComputePassDescriptor {
-  /**
-   * Timestamp writes query set handle (0 = none).
-   */
-  WGPUQuerySet timestamp_writes_query_set;
-  /**
-   * Query index for beginning timestamp.
-   */
-  uint32_t timestamp_writes_beginning;
-  /**
-   * Query index for end timestamp.
-   */
-  uint32_t timestamp_writes_end;
+typedef struct WGPUSamplerDescriptor {
+  uint32_t address_mode_u;
+  uint32_t address_mode_v;
+  uint32_t address_mode_w;
+  uint32_t mag_filter;
+  uint32_t min_filter;
+  uint32_t mipmap_filter;
+  float lod_min_clamp;
+  float lod_max_clamp;
+  uint32_t compare;
+  uint16_t max_anisotropy;
   const char *label;
-} WGPUComputePassDescriptor;
+} WGPUSamplerDescriptor;
 
-typedef uint64_t WGPURenderBundleEncoder;
-
-typedef struct WGPURenderBundleEncoderDescriptor {
-  const uint32_t *color_formats;
-  uint32_t color_format_count;
-  uint32_t depth_stencil_format;
+typedef struct WGPUTextureDescriptor {
+  uint32_t width;
+  uint32_t height;
+  uint32_t depth_or_array_layers;
+  uint32_t mip_level_count;
   uint32_t sample_count;
-  uint8_t depth_read_only;
-  uint8_t stencil_read_only;
+  uint32_t dimension;
+  uint32_t format;
+  uint32_t usage;
+  uint32_t view_format_count;
+  const uint32_t *view_formats;
   const char *label;
-} WGPURenderBundleEncoderDescriptor;
+} WGPUTextureDescriptor;
 
-typedef uint64_t WGPURenderBundle;
-
-typedef uint64_t WGPUBufferMapping;
-
-typedef uint64_t WGPUFence;
+typedef struct WGPUTextureViewDescriptor {
+  uint32_t format;
+  uint32_t dimension;
+  uint32_t base_mip_level;
+  uint32_t mip_level_count;
+  uint32_t base_array_layer;
+  uint32_t array_layer_count;
+  uint32_t aspect;
+  /**
+   * TextureUsages flags (0 = inherit from texture).
+   */
+  uint32_t usage;
+  const char *label;
+} WGPUTextureViewDescriptor;
 
 /**
  * Get the last error message.
  */
  const char *wgpu_get_last_error(void) ;
+
+#if defined(TARGET_APPLE)
+
+WGPUTexture wgpun_DeviceImportIOSurfacePlane(WGPUDevice device,
+                                             void *iosurface,
+                                             uint32_t plane,
+                                             uint32_t width,
+                                             uint32_t height,
+                                             uint32_t format)
+;
+#endif
+
+#if !defined(TARGET_APPLE)
+
+WGPUTexture wgpun_DeviceImportIOSurfacePlane(WGPUDevice _device,
+                                             void *_iosurface,
+                                             uint32_t _plane,
+                                             uint32_t _width,
+                                             uint32_t _height,
+                                             uint32_t _format)
+;
+#endif
+
+#if defined(TARGET_APPLE)
+ void *wgpun_IOSurfaceRetain(void *iosurface) ;
+#endif
+
+#if !defined(TARGET_APPLE)
+ void *wgpun_IOSurfaceRetain(void *_iosurface) ;
+#endif
+
+#if defined(TARGET_APPLE)
+ void wgpun_IOSurfaceRelease(void *iosurface) ;
+#endif
+
+#if !defined(TARGET_APPLE)
+ void wgpun_IOSurfaceRelease(void *_iosurface) ;
+#endif
+
+ void wgpun_IOSurfaceRelease_p(void *ptr) ;
+
+
+WGPUBindGroupLayout wgpun_DeviceCreateBindGroupLayout(WGPUDevice device,
+                                                      const struct WGPUBindGroupLayoutDescriptor *desc)
+;
+
+ void wgpun_BindGroupLayoutRelease(WGPUBindGroupLayout layout) ;
+
+
+WGPUBindGroup wgpun_DeviceCreateBindGroup(WGPUDevice device,
+                                          const struct WGPUBindGroupDescriptor *desc)
+;
+
+ void wgpun_BindGroupRelease(WGPUBindGroup group) ;
+
+
+WGPUBuffer wgpun_DeviceCreateBuffer(WGPUDevice device,
+                                    const struct WGPUBufferDescriptor *descriptor)
+;
+
+ void wgpun_BufferRelease(WGPUBuffer buffer) ;
+
+ WGPUCommandEncoder wgpun_DeviceCreateCommandEncoder(WGPUDevice device, const char *label) ;
+
+ WGPUCommandBuffer wgpun_CommandEncoderFinish(WGPUCommandEncoder encoder) ;
+
+ void wgpun_CommandEncoderInsertDebugMarker(WGPUCommandEncoder encoder, const char *label) ;
+
+ void wgpun_CommandEncoderPushDebugGroup(WGPUCommandEncoder encoder, const char *label) ;
+
+ void wgpun_CommandEncoderPopDebugGroup(WGPUCommandEncoder encoder) ;
+
+
+uint8_t wgpun_CommandEncoderCopyBufferToBuffer(WGPUCommandEncoder encoder,
+                                               WGPUBuffer source,
+                                               uint64_t source_offset,
+                                               WGPUBuffer destination,
+                                               uint64_t destination_offset,
+                                               uint64_t size)
+;
+
+
+uint8_t wgpun_CommandEncoderClearBuffer(WGPUCommandEncoder encoder,
+                                        WGPUBuffer buffer,
+                                        uint64_t offset,
+                                        uint64_t size)
+;
+
+
+uint8_t wgpun_CommandEncoderCopyTextureToBuffer(WGPUCommandEncoder encoder,
+                                                WGPUTexture texture,
+                                                WGPUBuffer buffer,
+                                                uint32_t bytes_per_row,
+                                                uint32_t rows_per_image,
+                                                uint32_t width,
+                                                uint32_t height,
+                                                uint32_t depth,
+                                                uint32_t mip_level,
+                                                uint32_t origin_x,
+                                                uint32_t origin_y,
+                                                uint32_t origin_z)
+;
+
+
+uint8_t wgpun_CommandEncoderCopyBufferToTexture(WGPUCommandEncoder encoder,
+                                                WGPUBuffer buffer,
+                                                WGPUTexture texture,
+                                                uint32_t bytes_per_row,
+                                                uint32_t rows_per_image,
+                                                uint32_t width,
+                                                uint32_t height,
+                                                uint32_t depth,
+                                                uint32_t mip_level,
+                                                uint32_t origin_x,
+                                                uint32_t origin_y,
+                                                uint32_t origin_z)
+;
+
+
+uint8_t wgpun_CommandEncoderCopyTextureToTexture(WGPUCommandEncoder encoder,
+                                                 WGPUTexture src_texture,
+                                                 WGPUTexture dst_texture,
+                                                 uint32_t width,
+                                                 uint32_t height,
+                                                 uint32_t depth,
+                                                 uint32_t src_mip_level,
+                                                 uint32_t src_origin_x,
+                                                 uint32_t src_origin_y,
+                                                 uint32_t src_origin_z,
+                                                 uint32_t dst_mip_level,
+                                                 uint32_t dst_origin_x,
+                                                 uint32_t dst_origin_y,
+                                                 uint32_t dst_origin_z)
+;
+
+
+WGPUComputePassEncoder wgpun_CommandEncoderBeginComputePass(WGPUCommandEncoder encoder,
+                                                            const struct WGPUComputePassDescriptor *descriptor)
+;
+
+
+void wgpun_ComputePassEncoderSetPipeline(WGPUComputePassEncoder compute_pass,
+                                         WGPUComputePipeline pipeline)
+;
+
+
+void wgpun_ComputePassEncoderSetBindGroup(WGPUComputePassEncoder compute_pass,
+                                          uint32_t index,
+                                          WGPUBindGroup bind_group,
+                                          const uint32_t *dynamic_offsets,
+                                          uint32_t dynamic_offset_count)
+;
+
+
+void wgpun_ComputePassEncoderDispatchWorkgroups(WGPUComputePassEncoder compute_pass,
+                                                uint32_t x,
+                                                uint32_t y,
+                                                uint32_t z)
+;
+
+
+void wgpun_ComputePassEncoderDispatchWorkgroupsIndirect(WGPUComputePassEncoder compute_pass,
+                                                        WGPUBuffer indirect_buffer,
+                                                        uint64_t indirect_offset)
+;
+
+
+void wgpun_ComputePassEncoderInsertDebugMarker(WGPUComputePassEncoder compute_pass,
+                                               const char *label)
+;
+
+
+void wgpun_ComputePassEncoderPushDebugGroup(WGPUComputePassEncoder compute_pass,
+                                            const char *label)
+;
+
+ void wgpun_ComputePassEncoderPopDebugGroup(WGPUComputePassEncoder compute_pass) ;
+
+
+void wgpun_ComputePassEncoderSetImmediates(WGPUComputePassEncoder compute_pass,
+                                           uint32_t offset,
+                                           const uint8_t *data,
+                                           uint32_t data_len)
+;
+
+ WGPUCommandEncoder wgpun_ComputePassEncoderEnd(WGPUComputePassEncoder compute_pass) ;
 
 /**
  * Create a wgpu instance.
@@ -546,82 +732,60 @@ WGPUDevice wgpun_AdapterRequestDevice(WGPUAdapter adapter,
  uint32_t wgpun_DevicePopErrorScope(WGPUDevice device) ;
 
 
-WGPUBuffer wgpun_DeviceCreateBuffer(WGPUDevice device,
-                                    const struct WGPUBufferDescriptor *descriptor)
+WGPUFence wgpun_QueueSubmitFenced(WGPUQueue queue,
+                                  const WGPUCommandBuffer *command_buffers,
+                                  uint32_t count)
 ;
 
- void wgpun_BufferRelease(WGPUBuffer buffer) ;
+ int32_t wgpun_FenceStatus(WGPUDevice device, WGPUFence handle) ;
+
+ uint32_t wgpun_FenceWait(WGPUDevice device, WGPUFence handle) ;
+
+ void wgpun_FenceRelease(WGPUFence handle) ;
+
+ void wgpun_BindGroupRelease_p(void *ptr) ;
+
+ void wgpun_BindGroupLayoutRelease_p(void *ptr) ;
+
+ void wgpun_PipelineLayoutRelease_p(void *ptr) ;
+
+ void wgpun_RenderPipelineRelease_p(void *ptr) ;
+
+ void wgpun_ComputePipelineRelease_p(void *ptr) ;
+
+ void wgpun_SamplerRelease_p(void *ptr) ;
+
+ void wgpun_ShaderModuleRelease_p(void *ptr) ;
+
+ void wgpun_TextureViewRelease_p(void *ptr) ;
+
+ void wgpun_BufferRelease_p(void *ptr) ;
+
+ void wgpun_TextureRelease_p(void *ptr) ;
+
+ void wgpun_QuerySetRelease_p(void *ptr) ;
+
+ void wgpun_FenceRelease_p(void *ptr) ;
+
+ void wgpun_BufferMappingRelease_p(void *ptr) ;
 
 
-void wgpun_QueueWriteBuffer(WGPUQueue queue,
-                            WGPUBuffer buffer,
-                            uint64_t offset,
-                            const uint8_t *data,
-                            uint64_t size)
+WGPUBufferMapping wgpun_BufferMapStart(WGPUDevice device,
+                                       WGPUBuffer buffer,
+                                       uint64_t offset,
+                                       uint64_t size,
+                                       uint32_t mode)
 ;
 
+ int32_t wgpun_BufferMapStatus(WGPUBufferMapping handle) ;
 
-void wgpun_QueueWriteTexture(WGPUQueue queue,
-                             WGPUTexture texture,
-                             const uint8_t *data,
-                             uint64_t data_size,
-                             uint32_t bytes_per_row,
-                             uint32_t width,
-                             uint32_t height,
-                             uint32_t depth_or_array_layers,
-                             uint32_t mip_level,
-                             uint32_t origin_x,
-                             uint32_t origin_y,
-                             uint32_t origin_z,
-                             uint32_t aspect,
-                             uint32_t rows_per_image)
-;
+ const uint8_t *wgpun_BufferMapGetPointer(WGPUBufferMapping handle) ;
 
+ uint8_t *wgpun_BufferMapGetPointerMut(WGPUBufferMapping handle) ;
 
-WGPUTexture wgpun_DeviceCreateTexture(WGPUDevice device,
-                                      const struct WGPUTextureDescriptor *descriptor)
-;
+ uint64_t wgpun_BufferMapGetSize(WGPUBufferMapping handle) ;
 
-
-WGPUTextureView wgpun_TextureCreateView(WGPUTexture texture,
-                                        const struct WGPUTextureViewDescriptor *descriptor)
-;
-
- void wgpun_TextureRelease(WGPUTexture texture) ;
-
- void wgpun_TextureViewRelease(WGPUTextureView view) ;
-
-
-WGPUSampler wgpun_DeviceCreateSampler(WGPUDevice device,
-                                      const struct WGPUSamplerDescriptor *descriptor)
-;
-
- void wgpun_SamplerRelease(WGPUSampler sampler) ;
-
-
-WGPUShaderModule wgpun_DeviceCreateShaderModule(WGPUDevice device,
-                                                const uint8_t *source,
-                                                uint32_t source_len,
-                                                const char *label)
-;
-
- const char *wgpun_ShaderModuleGetCompilationInfo(WGPUShaderModule module) ;
-
- void wgpun_ShaderModuleRelease(WGPUShaderModule module) ;
-
-
-WGPUBindGroupLayout wgpun_DeviceCreateBindGroupLayout(WGPUDevice device,
-                                                      const struct WGPUBindGroupLayoutDescriptor *desc)
-;
-
- void wgpun_BindGroupLayoutRelease(WGPUBindGroupLayout layout) ;
-
-
-WGPUBindGroup wgpun_DeviceCreateBindGroup(WGPUDevice device,
-                                          const struct WGPUBindGroupDescriptor *desc)
-;
-
- void wgpun_BindGroupRelease(WGPUBindGroup group) ;
+ void wgpun_BufferUnmap(WGPUBufferMapping handle, WGPUBuffer _original_buffer_id) ;
 
 
 WGPUPipelineLayout wgpun_DeviceCreatePipelineLayout(WGPUDevice device,
@@ -654,106 +818,151 @@ WGPUBindGroupLayout wgpun_ComputePipelineGetBindGroupLayout(WGPUComputePipeline 
 
  void wgpun_ComputePipelineRelease(WGPUComputePipeline pipeline) ;
 
- void wgpun_BindGroupRelease_p(void *ptr) ;
 
- void wgpun_BindGroupLayoutRelease_p(void *ptr) ;
+WGPUQuerySet wgpun_DeviceCreateQuerySet(WGPUDevice device,
+                                        uint32_t query_type,
+                                        uint32_t count,
+                                        const char *label)
+;
 
- void wgpun_PipelineLayoutRelease_p(void *ptr) ;
-
- void wgpun_RenderPipelineRelease_p(void *ptr) ;
-
- void wgpun_ComputePipelineRelease_p(void *ptr) ;
-
- void wgpun_SamplerRelease_p(void *ptr) ;
-
- void wgpun_ShaderModuleRelease_p(void *ptr) ;
-
- void wgpun_TextureViewRelease_p(void *ptr) ;
-
- void wgpun_BufferRelease_p(void *ptr) ;
-
- void wgpun_TextureRelease_p(void *ptr) ;
-
- void wgpun_QuerySetRelease_p(void *ptr) ;
-
- void wgpun_FenceRelease_p(void *ptr) ;
-
- void wgpun_BufferMappingRelease_p(void *ptr) ;
-
- WGPUCommandEncoder wgpun_DeviceCreateCommandEncoder(WGPUDevice device, const char *label) ;
-
- WGPUCommandBuffer wgpun_CommandEncoderFinish(WGPUCommandEncoder encoder) ;
-
- void wgpun_CommandEncoderInsertDebugMarker(WGPUCommandEncoder encoder, const char *label) ;
-
- void wgpun_CommandEncoderPushDebugGroup(WGPUCommandEncoder encoder, const char *label) ;
-
- void wgpun_CommandEncoderPopDebugGroup(WGPUCommandEncoder encoder) ;
+ void wgpun_QuerySetRelease(WGPUQuerySet query_set) ;
 
 
-uint8_t wgpun_CommandEncoderCopyBufferToBuffer(WGPUCommandEncoder encoder,
-                                               WGPUBuffer source,
-                                               uint64_t source_offset,
-                                               WGPUBuffer destination,
-                                               uint64_t destination_offset,
-                                               uint64_t size)
+uint8_t wgpun_CommandEncoderWriteTimestamp(WGPUCommandEncoder encoder,
+                                           WGPUQuerySet query_set,
+                                           uint32_t query_index)
 ;
 
 
-uint8_t wgpun_CommandEncoderClearBuffer(WGPUCommandEncoder encoder,
-                                        WGPUBuffer buffer,
-                                        uint64_t offset,
-                                        uint64_t size)
+uint8_t wgpun_CommandEncoderResolveQuerySet(WGPUCommandEncoder encoder,
+                                            WGPUQuerySet query_set,
+                                            uint32_t first_query,
+                                            uint32_t query_count,
+                                            WGPUBuffer destination,
+                                            uint64_t destination_offset)
 ;
 
-
-uint8_t wgpun_CommandEncoderCopyTextureToBuffer(WGPUCommandEncoder encoder,
-                                                WGPUTexture texture,
-                                                WGPUBuffer buffer,
-                                                uint32_t bytes_per_row,
-                                                uint32_t rows_per_image,
-                                                uint32_t width,
-                                                uint32_t height,
-                                                uint32_t depth,
-                                                uint32_t mip_level,
-                                                uint32_t origin_x,
-                                                uint32_t origin_y,
-                                                uint32_t origin_z)
-;
-
-
-uint8_t wgpun_CommandEncoderCopyBufferToTexture(WGPUCommandEncoder encoder,
-                                                WGPUBuffer buffer,
-                                                WGPUTexture texture,
-                                                uint32_t bytes_per_row,
-                                                uint32_t rows_per_image,
-                                                uint32_t width,
-                                                uint32_t height,
-                                                uint32_t depth,
-                                                uint32_t mip_level,
-                                                uint32_t origin_x,
-                                                uint32_t origin_y,
-                                                uint32_t origin_z)
-;
-
-
-uint8_t wgpun_CommandEncoderCopyTextureToTexture(WGPUCommandEncoder encoder,
-                                                 WGPUTexture src_texture,
-                                                 WGPUTexture dst_texture,
-                                                 uint32_t width,
-                                                 uint32_t height,
-                                                 uint32_t depth,
-                                                 uint32_t src_mip_level,
-                                                 uint32_t src_origin_x,
-                                                 uint32_t src_origin_y,
-                                                 uint32_t src_origin_z,
-                                                 uint32_t dst_mip_level,
-                                                 uint32_t dst_origin_x,
-                                                 uint32_t dst_origin_y,
-                                                 uint32_t dst_origin_z)
-;
+ float wgpun_QueueGetTimestampPeriod(WGPUQueue queue) ;
 
  void wgpun_QueueSubmit(WGPUQueue queue, const WGPUCommandBuffer *command_buffers, uint32_t count) ;
+
+
+void wgpun_QueueWriteBuffer(WGPUQueue queue,
+                            WGPUBuffer buffer,
+                            uint64_t offset,
+                            const uint8_t *data,
+                            uint64_t size)
+;
+
+
+void wgpun_QueueWriteTexture(WGPUQueue queue,
+                             WGPUTexture texture,
+                             const uint8_t *data,
+                             uint64_t data_size,
+                             uint32_t bytes_per_row,
+                             uint32_t width,
+                             uint32_t height,
+                             uint32_t depth_or_array_layers,
+                             uint32_t mip_level,
+                             uint32_t origin_x,
+                             uint32_t origin_y,
+                             uint32_t origin_z,
+                             uint32_t aspect,
+                             uint32_t rows_per_image)
+;
+
+
+uint64_t wgpun_BufferReadSync(WGPUDevice device,
+                              WGPUBuffer buffer,
+                              uint64_t offset,
+                              uint64_t size,
+                              uint8_t *output)
+;
+
+
+WGPURenderBundleEncoder wgpun_DeviceCreateRenderBundleEncoder(WGPUDevice device,
+                                                              const struct WGPURenderBundleEncoderDescriptor *descriptor)
+;
+
+
+void wgpun_RenderBundleEncoderSetPipeline(WGPURenderBundleEncoder encoder,
+                                          WGPURenderPipeline pipeline)
+;
+
+
+void wgpun_RenderBundleEncoderSetBindGroup(WGPURenderBundleEncoder encoder,
+                                           uint32_t index,
+                                           WGPUBindGroup bind_group,
+                                           const uint32_t *dynamic_offsets,
+                                           uint32_t dynamic_offset_count)
+;
+
+
+void wgpun_RenderBundleEncoderSetVertexBuffer(WGPURenderBundleEncoder encoder,
+                                              uint32_t slot,
+                                              WGPUBuffer buffer,
+                                              uint64_t offset,
+                                              uint64_t size)
+;
+
+
+void wgpun_RenderBundleEncoderSetIndexBuffer(WGPURenderBundleEncoder encoder,
+                                             WGPUBuffer buffer,
+                                             uint32_t format,
+                                             uint64_t offset,
+                                             uint64_t size)
+;
+
+
+void wgpun_RenderBundleEncoderDraw(WGPURenderBundleEncoder encoder,
+                                   uint32_t vertex_count,
+                                   uint32_t instance_count,
+                                   uint32_t first_vertex,
+                                   uint32_t first_instance)
+;
+
+
+void wgpun_RenderBundleEncoderDrawIndexed(WGPURenderBundleEncoder encoder,
+                                          uint32_t index_count,
+                                          uint32_t instance_count,
+                                          uint32_t first_index,
+                                          int32_t base_vertex,
+                                          uint32_t first_instance)
+;
+
+
+void wgpun_RenderBundleEncoderDrawIndirect(WGPURenderBundleEncoder encoder,
+                                           WGPUBuffer indirect_buffer,
+                                           uint64_t indirect_offset)
+;
+
+
+void wgpun_RenderBundleEncoderDrawIndexedIndirect(WGPURenderBundleEncoder encoder,
+                                                  WGPUBuffer indirect_buffer,
+                                                  uint64_t indirect_offset)
+;
+
+
+void wgpun_RenderBundleEncoderSetImmediates(WGPURenderBundleEncoder encoder,
+                                            uint32_t offset,
+                                            const uint8_t *data,
+                                            uint32_t data_len)
+;
+
+
+WGPURenderBundle wgpun_RenderBundleEncoderFinish(WGPURenderBundleEncoder encoder,
+                                                 const char *label)
+;
+
+
+void wgpun_RenderPassExecuteBundles(WGPURenderPassEncoder render_pass,
+                                    const WGPURenderBundle *bundles,
+                                    uint32_t count)
+;
+
+ void wgpun_RenderBundleRelease(WGPURenderBundle bundle) ;
+
+ void wgpun_RenderBundleRelease_p(void *ptr) ;
 
 
 WGPURenderPassEncoder wgpun_CommandEncoderBeginRenderPass(WGPUCommandEncoder encoder,
@@ -882,205 +1091,22 @@ void wgpun_RenderPassEncoderSetImmediates(WGPURenderPassEncoder render_pass,
  WGPUCommandEncoder wgpun_RenderPassEncoderEnd(WGPURenderPassEncoder render_pass) ;
 
 
-WGPUComputePassEncoder wgpun_CommandEncoderBeginComputePass(WGPUCommandEncoder encoder,
-                                                            const struct WGPUComputePassDescriptor *descriptor)
+WGPUSampler wgpun_DeviceCreateSampler(WGPUDevice device,
+                                      const struct WGPUSamplerDescriptor *descriptor)
 ;
 
+ void wgpun_SamplerRelease(WGPUSampler sampler) ;
 
-void wgpun_ComputePassEncoderSetPipeline(WGPUComputePassEncoder compute_pass,
-                                         WGPUComputePipeline pipeline)
+
+WGPUShaderModule wgpun_DeviceCreateShaderModule(WGPUDevice device,
+                                                const uint8_t *source,
+                                                uint32_t source_len,
+                                                const char *label)
 ;
 
+ const char *wgpun_ShaderModuleGetCompilationInfo(WGPUShaderModule module) ;
 
-void wgpun_ComputePassEncoderSetBindGroup(WGPUComputePassEncoder compute_pass,
-                                          uint32_t index,
-                                          WGPUBindGroup bind_group,
-                                          const uint32_t *dynamic_offsets,
-                                          uint32_t dynamic_offset_count)
-;
-
-
-void wgpun_ComputePassEncoderDispatchWorkgroups(WGPUComputePassEncoder compute_pass,
-                                                uint32_t x,
-                                                uint32_t y,
-                                                uint32_t z)
-;
-
-
-void wgpun_ComputePassEncoderDispatchWorkgroupsIndirect(WGPUComputePassEncoder compute_pass,
-                                                        WGPUBuffer indirect_buffer,
-                                                        uint64_t indirect_offset)
-;
-
-
-void wgpun_ComputePassEncoderInsertDebugMarker(WGPUComputePassEncoder compute_pass,
-                                               const char *label)
-;
-
-
-void wgpun_ComputePassEncoderPushDebugGroup(WGPUComputePassEncoder compute_pass,
-                                            const char *label)
-;
-
- void wgpun_ComputePassEncoderPopDebugGroup(WGPUComputePassEncoder compute_pass) ;
-
-
-void wgpun_ComputePassEncoderSetImmediates(WGPUComputePassEncoder compute_pass,
-                                           uint32_t offset,
-                                           const uint8_t *data,
-                                           uint32_t data_len)
-;
-
- WGPUCommandEncoder wgpun_ComputePassEncoderEnd(WGPUComputePassEncoder compute_pass) ;
-
-
-WGPURenderBundleEncoder wgpun_DeviceCreateRenderBundleEncoder(WGPUDevice device,
-                                                              const struct WGPURenderBundleEncoderDescriptor *descriptor)
-;
-
-
-void wgpun_RenderBundleEncoderSetPipeline(WGPURenderBundleEncoder encoder,
-                                          WGPURenderPipeline pipeline)
-;
-
-
-void wgpun_RenderBundleEncoderSetBindGroup(WGPURenderBundleEncoder encoder,
-                                           uint32_t index,
-                                           WGPUBindGroup bind_group,
-                                           const uint32_t *dynamic_offsets,
-                                           uint32_t dynamic_offset_count)
-;
-
-
-void wgpun_RenderBundleEncoderSetVertexBuffer(WGPURenderBundleEncoder encoder,
-                                              uint32_t slot,
-                                              WGPUBuffer buffer,
-                                              uint64_t offset,
-                                              uint64_t size)
-;
-
-
-void wgpun_RenderBundleEncoderSetIndexBuffer(WGPURenderBundleEncoder encoder,
-                                             WGPUBuffer buffer,
-                                             uint32_t format,
-                                             uint64_t offset,
-                                             uint64_t size)
-;
-
-
-void wgpun_RenderBundleEncoderDraw(WGPURenderBundleEncoder encoder,
-                                   uint32_t vertex_count,
-                                   uint32_t instance_count,
-                                   uint32_t first_vertex,
-                                   uint32_t first_instance)
-;
-
-
-void wgpun_RenderBundleEncoderDrawIndexed(WGPURenderBundleEncoder encoder,
-                                          uint32_t index_count,
-                                          uint32_t instance_count,
-                                          uint32_t first_index,
-                                          int32_t base_vertex,
-                                          uint32_t first_instance)
-;
-
-
-void wgpun_RenderBundleEncoderDrawIndirect(WGPURenderBundleEncoder encoder,
-                                           WGPUBuffer indirect_buffer,
-                                           uint64_t indirect_offset)
-;
-
-
-void wgpun_RenderBundleEncoderDrawIndexedIndirect(WGPURenderBundleEncoder encoder,
-                                                  WGPUBuffer indirect_buffer,
-                                                  uint64_t indirect_offset)
-;
-
-
-void wgpun_RenderBundleEncoderSetImmediates(WGPURenderBundleEncoder encoder,
-                                            uint32_t offset,
-                                            const uint8_t *data,
-                                            uint32_t data_len)
-;
-
-
-WGPURenderBundle wgpun_RenderBundleEncoderFinish(WGPURenderBundleEncoder encoder,
-                                                 const char *label)
-;
-
-
-void wgpun_RenderPassExecuteBundles(WGPURenderPassEncoder render_pass,
-                                    const WGPURenderBundle *bundles,
-                                    uint32_t count)
-;
-
- void wgpun_RenderBundleRelease(WGPURenderBundle bundle) ;
-
- void wgpun_RenderBundleRelease_p(void *ptr) ;
-
-
-uint64_t wgpun_BufferReadSync(WGPUDevice device,
-                              WGPUBuffer buffer,
-                              uint64_t offset,
-                              uint64_t size,
-                              uint8_t *output)
-;
-
-
-WGPUQuerySet wgpun_DeviceCreateQuerySet(WGPUDevice device,
-                                        uint32_t query_type,
-                                        uint32_t count,
-                                        const char *label)
-;
-
- void wgpun_QuerySetRelease(WGPUQuerySet query_set) ;
-
-
-uint8_t wgpun_CommandEncoderWriteTimestamp(WGPUCommandEncoder encoder,
-                                           WGPUQuerySet query_set,
-                                           uint32_t query_index)
-;
-
-
-uint8_t wgpun_CommandEncoderResolveQuerySet(WGPUCommandEncoder encoder,
-                                            WGPUQuerySet query_set,
-                                            uint32_t first_query,
-                                            uint32_t query_count,
-                                            WGPUBuffer destination,
-                                            uint64_t destination_offset)
-;
-
- float wgpun_QueueGetTimestampPeriod(WGPUQueue queue) ;
-
-
-WGPUBufferMapping wgpun_BufferMapStart(WGPUDevice device,
-                                       WGPUBuffer buffer,
-                                       uint64_t offset,
-                                       uint64_t size,
-                                       uint32_t mode)
-;
-
- int32_t wgpun_BufferMapStatus(WGPUBufferMapping handle) ;
-
- const uint8_t *wgpun_BufferMapGetPointer(WGPUBufferMapping handle) ;
-
- uint8_t *wgpun_BufferMapGetPointerMut(WGPUBufferMapping handle) ;
-
- uint64_t wgpun_BufferMapGetSize(WGPUBufferMapping handle) ;
-
- void wgpun_BufferUnmap(WGPUBufferMapping handle, WGPUBuffer _original_buffer_id) ;
-
-
-WGPUFence wgpun_QueueSubmitFenced(WGPUQueue queue,
-                                  const WGPUCommandBuffer *command_buffers,
-                                  uint32_t count)
-;
-
- int32_t wgpun_FenceStatus(WGPUDevice device, WGPUFence handle) ;
-
- uint32_t wgpun_FenceWait(WGPUDevice device, WGPUFence handle) ;
-
- void wgpun_FenceRelease(WGPUFence handle) ;
+ void wgpun_ShaderModuleRelease(WGPUShaderModule module) ;
 
 #if !defined(TARGET_ANDROID)
 /**
@@ -1127,7 +1153,7 @@ uint64_t wgpu_create_surface_from_window(WGPUDevice _device_handle,
  uint64_t wgpu_get_surface_handle(uint64_t surface_id) ;
 
 /**
- * Get the pixel buffer pointer for a surface (Windows only).
+ * Get the pixel buffer pointer for a surface (Windows/Linux).
  */
  const uint8_t *wgpu_get_pixel_buffer_ptr(uint64_t surface_id) ;
 
@@ -1238,5 +1264,27 @@ uint64_t wgpu_create_swapchain_surface(WGPUDevice _device_handle,
  * Destroy a swapchain surface.
  */
  void wgpu_swapchain_destroy(uint64_t surface_id) ;
+
+
+WGPUTexture wgpun_DeviceCreateTexture(WGPUDevice device,
+                                      const struct WGPUTextureDescriptor *descriptor)
+;
+
+
+WGPUTextureView wgpun_TextureCreateView(WGPUTexture texture,
+                                        const struct WGPUTextureViewDescriptor *descriptor)
+;
+
+ void wgpun_TextureRelease(WGPUTexture texture) ;
+
+ void wgpun_TextureViewRelease(WGPUTextureView view) ;
+
+#if defined(TARGET_APPLE)
+extern const void *CFRetain(const void *cf);
+#endif
+
+#if defined(TARGET_APPLE)
+extern void CFRelease(const void *cf);
+#endif
 
 #endif  /* WGPU_NATIVE_H */

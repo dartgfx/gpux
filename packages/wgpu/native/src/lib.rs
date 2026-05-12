@@ -16,11 +16,23 @@
 use std::cell::RefCell;
 use std::ffi::{c_char, CString};
 
-// Internal modules
-mod api;
-mod ffi;
-mod handle;
+mod abi;
+mod bind_group;
+mod buffer;
+mod command;
+mod compute_pass;
+mod device;
+mod pipeline;
+mod query;
+mod queue;
+mod render_bundle;
+mod render_pass;
+mod runtime;
+mod sampler;
+mod shader;
 mod surface;
+mod sync;
+mod texture;
 
 // =============================================================================
 // LAST ERROR (thread-local for FFI error reporting)
