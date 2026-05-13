@@ -1566,6 +1566,13 @@ final class WGPUDeviceDescriptor extends ffi.Struct {
   @ffi.Uint8()
   external int immediates;
 
+  /// If non-zero on Android, request the
+  /// `VK_ANDROID_external_memory_android_hardware_buffer` Vulkan device
+  /// extension so subsequent `wgpun_DeviceImportAHardwareBuffer` calls can
+  /// succeed. No-op on non-Android targets.
+  @ffi.Uint8()
+  external int require_android_ahb_import;
+
   external ffi.Pointer<ffi.Char> label;
 }
 

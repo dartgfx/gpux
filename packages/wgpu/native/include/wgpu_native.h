@@ -192,6 +192,13 @@ typedef struct WGPUDeviceDescriptor {
    * If non-zero, request IMMEDIATES feature (push constants).
    */
   uint8_t immediates;
+  /**
+   * If non-zero on Android, request the
+   * `VK_ANDROID_external_memory_android_hardware_buffer` Vulkan device
+   * extension so subsequent `wgpun_DeviceImportAHardwareBuffer` calls can
+   * succeed. No-op on non-Android targets.
+   */
+  uint8_t require_android_ahb_import;
   const char *label;
 } WGPUDeviceDescriptor;
 

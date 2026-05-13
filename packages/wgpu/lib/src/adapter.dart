@@ -266,12 +266,15 @@ class WgpuAdapter implements GpuAdapter, WgpuResource {
       if (descriptor case WgpuDeviceDescriptor(
         :final bindlessTextures,
         :final immediates,
+        :final requireAndroidAhbImport,
       )) {
         desc.ref.bindless_textures = bindlessTextures ? 1 : 0;
         desc.ref.immediates = immediates ? 1 : 0;
+        desc.ref.require_android_ahb_import = requireAndroidAhbImport ? 1 : 0;
       } else {
         desc.ref.bindless_textures = 0;
         desc.ref.immediates = 0;
+        desc.ref.require_android_ahb_import = 0;
       }
 
       final deviceHandle = ffi.wgpun_AdapterRequestDevice(_handle, desc);
@@ -325,6 +328,7 @@ class WgpuDeviceDescriptor extends GpuDeviceDescriptor {
     super.defaultQueueLabel,
     this.bindlessTextures = false,
     this.immediates = false,
+    this.requireAndroidAhbImport = false,
   });
 
   /// Enable texture binding arrays.
@@ -332,4 +336,10 @@ class WgpuDeviceDescriptor extends GpuDeviceDescriptor {
 
   /// Enable immediates / push constants (`var<immediate>` in WGSL).
   final bool immediates;
+
+  /// On Android, request the
+  /// `VK_ANDROID_external_memory_android_hardware_buffer` Vulkan device
+  /// extension so subsequent `device.android.importHardwareBuffer(...)` calls
+  /// can succeed. No-op on non-Android targets.
+  final bool requireAndroidAhbImport;
 }
