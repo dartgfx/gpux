@@ -236,14 +236,41 @@ fn parse_defines_json(
     let defines_str = unsafe { CStr::from_ptr(defines_json) }
         .to_str()
         .map_err(|_| "invalid UTF-8 in defines_json".to_string())?;
-    if defines_str.trim().is_empty() {
+    let trimmed = defines_str.trim();
+    if trimmed.is_empty() || trimmed == "{}" {
         return Ok(defines);
     }
 
-    let parsed: std::collections::HashMap<String, String> = serde_json::from_str(defines_str)
-        .map_err(|error| format!("invalid defines_json: {error}"))?;
-    defines.extend(parsed);
+    for entry in trimmed
+        .strip_prefix('{')
+        .and_then(|s| s.strip_suffix('}'))
+        .ok_or_else(|| "defines_json must be an object".to_string())?
+        .split(',')
+    {
+        let entry = entry.trim();
+        if entry.is_empty() {
+            continue;
+        }
+        let Some((key, value)) = entry.split_once(':') else {
+            return Err("defines_json entries must be key/value pairs".to_string());
+        };
+        defines.insert(unquote_json_string(key)?, unquote_json_string(value)?);
+    }
     Ok(defines)
+}
+
+fn unquote_json_string(value: &str) -> Result<String, String> {
+    let trimmed = value.trim();
+    let unquoted = trimmed
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .ok_or_else(|| "defines_json keys and values must be strings".to_string())?;
+    Ok(unquoted
+        .replace("\\\"", "\"")
+        .replace("\\\\", "\\")
+        .replace("\\n", "\n")
+        .replace("\\r", "\r")
+        .replace("\\t", "\t"))
 }
 
 fn translate_result_from_validation_result(result: NagaValidationResult) -> NagaTranslateResult {
