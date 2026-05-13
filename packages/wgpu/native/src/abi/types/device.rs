@@ -74,5 +74,10 @@ pub struct WGPUDeviceDescriptor {
     pub bindless_textures: u8,
     /// If non-zero, request IMMEDIATES feature (push constants).
     pub immediates: u8,
+    /// If non-zero on Android, request the
+    /// `VK_ANDROID_external_memory_android_hardware_buffer` Vulkan device
+    /// extension so subsequent `wgpun_DeviceImportAHardwareBuffer` calls can
+    /// succeed. No-op on non-Android targets.
+    pub require_android_ahb_import: u8,
     pub label: *const std::os::raw::c_char,
 }

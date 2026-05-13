@@ -192,6 +192,13 @@ typedef struct WGPUDeviceDescriptor {
    * If non-zero, request IMMEDIATES feature (push constants).
    */
   uint8_t immediates;
+  /**
+   * If non-zero on Android, request the
+   * `VK_ANDROID_external_memory_android_hardware_buffer` Vulkan device
+   * extension so subsequent `wgpun_DeviceImportAHardwareBuffer` calls can
+   * succeed. No-op on non-Android targets.
+   */
+  uint8_t require_android_ahb_import;
   const char *label;
 } WGPUDeviceDescriptor;
 
@@ -477,6 +484,44 @@ WGPUTexture wgpun_DeviceImportIOSurfacePlane(WGPUDevice _device,
 #endif
 
  void wgpun_IOSurfaceRelease_p(void *ptr) ;
+
+#if defined(TARGET_ANDROID)
+
+WGPUTexture wgpun_DeviceImportAHardwareBuffer(WGPUDevice device,
+                                              void *ahb,
+                                              uint32_t width,
+                                              uint32_t height,
+                                              uint32_t format)
+;
+#endif
+
+#if !defined(TARGET_ANDROID)
+
+WGPUTexture wgpun_DeviceImportAHardwareBuffer(WGPUDevice _device,
+                                              void *_ahb,
+                                              uint32_t _width,
+                                              uint32_t _height,
+                                              uint32_t _format)
+;
+#endif
+
+#if defined(TARGET_ANDROID)
+ void *wgpun_AHardwareBufferAcquire(void *ahb) ;
+#endif
+
+#if !defined(TARGET_ANDROID)
+ void *wgpun_AHardwareBufferAcquire(void *_ahb) ;
+#endif
+
+#if defined(TARGET_ANDROID)
+ void wgpun_AHardwareBufferRelease(void *ahb) ;
+#endif
+
+#if !defined(TARGET_ANDROID)
+ void wgpun_AHardwareBufferRelease(void *_ahb) ;
+#endif
+
+ void wgpun_AHardwareBufferRelease_p(void *ptr) ;
 
 
 WGPUBindGroupLayout wgpun_DeviceCreateBindGroupLayout(WGPUDevice device,
