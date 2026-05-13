@@ -478,6 +478,44 @@ WGPUTexture wgpun_DeviceImportIOSurfacePlane(WGPUDevice _device,
 
  void wgpun_IOSurfaceRelease_p(void *ptr) ;
 
+#if defined(TARGET_ANDROID)
+
+WGPUTexture wgpun_DeviceImportAHardwareBuffer(WGPUDevice device,
+                                              void *ahb,
+                                              uint32_t width,
+                                              uint32_t height,
+                                              uint32_t format)
+;
+#endif
+
+#if !defined(TARGET_ANDROID)
+
+WGPUTexture wgpun_DeviceImportAHardwareBuffer(WGPUDevice _device,
+                                              void *_ahb,
+                                              uint32_t _width,
+                                              uint32_t _height,
+                                              uint32_t _format)
+;
+#endif
+
+#if defined(TARGET_ANDROID)
+ void *wgpun_AHardwareBufferAcquire(void *ahb) ;
+#endif
+
+#if !defined(TARGET_ANDROID)
+ void *wgpun_AHardwareBufferAcquire(void *_ahb) ;
+#endif
+
+#if defined(TARGET_ANDROID)
+ void wgpun_AHardwareBufferRelease(void *ahb) ;
+#endif
+
+#if !defined(TARGET_ANDROID)
+ void wgpun_AHardwareBufferRelease(void *_ahb) ;
+#endif
+
+ void wgpun_AHardwareBufferRelease_p(void *ptr) ;
+
 
 WGPUBindGroupLayout wgpun_DeviceCreateBindGroupLayout(WGPUDevice device,
                                                       const struct WGPUBindGroupLayoutDescriptor *desc)
