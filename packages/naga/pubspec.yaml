@@ -6,11 +6,8 @@ topics:
   - gpu
   - wgsl
   - glsl
-  - hlsl
-  - msl
   - spirv
   - shader
-  - webgpu
 
 environment:
   sdk: ^3.10.0
