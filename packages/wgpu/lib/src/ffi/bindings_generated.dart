@@ -52,6 +52,38 @@ external void wgpun_IOSurfaceRelease_p(
 );
 
 @ffi.Native<
+  ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Pointer<ffi.Void>,
+    ffi.Uint32,
+    ffi.Uint32,
+    ffi.Uint32,
+  )
+>()
+external int wgpun_DeviceImportAHardwareBuffer(
+  int _device,
+  ffi.Pointer<ffi.Void> _ahb,
+  int _width,
+  int _height,
+  int _format,
+);
+
+@ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>()
+external ffi.Pointer<ffi.Void> wgpun_AHardwareBufferAcquire(
+  ffi.Pointer<ffi.Void> _ahb,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_AHardwareBufferRelease(
+  ffi.Pointer<ffi.Void> _ahb,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void wgpun_AHardwareBufferRelease_p(
+  ffi.Pointer<ffi.Void> ptr,
+);
+
+@ffi.Native<
   ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<WGPUBindGroupLayoutDescriptor>)
 >()
 external int wgpun_DeviceCreateBindGroupLayout(
