@@ -41,4 +41,26 @@ fn main( {
       expect(errors.first.offset, isNotNull);
     });
   });
+
+  group('Naga.translateGlslToWgsl', () {
+    test('translates GLSL fragment shader to valid WGSL', () {
+      const glslFragment = '''
+#version 450
+layout(location = 0) out vec4 fragColor;
+
+void main() {
+  fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+''';
+
+      final translated = Naga.translateGlslToWgsl(
+        glslFragment,
+        NagaShaderStage.fragment,
+      );
+
+      expect(translated.errors, isEmpty);
+      expect(translated.wgsl, isNotNull);
+      expect(Naga.validate(translated.wgsl!), isEmpty);
+    });
+  });
 }

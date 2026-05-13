@@ -25,11 +25,33 @@ external NagaValidationResult naga_validate_wgsl(
   int _source_len,
 );
 
+/// Translate GLSL source code to WGSL.
+///
+/// stage: 0 = vertex, 1 = fragment, 2 = compute.
+/// defines_json is a JSON object whose string keys and values become GLSL
+/// preprocessor defines.
+///
+/// The caller must call naga_free_translate_result() to free the result.
+@ffi.Native<
+  NagaTranslateResult Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Uint32,
+    ffi.Pointer<ffi.Char>,
+  )
+>()
+external NagaTranslateResult naga_glsl_to_wgsl(
+  ffi.Pointer<ffi.Char> source,
+  int stage,
+  ffi.Pointer<ffi.Char> defines_json,
+);
+
 /// Free a validation result returned by naga_validate_wgsl.
 @ffi.Native<ffi.Void Function(NagaValidationResult)>()
-external void naga_free_validation_result(
-  NagaValidationResult result,
-);
+external void naga_free_validation_result(NagaValidationResult result);
+
+/// Free a translation result returned by naga_glsl_to_wgsl.
+@ffi.Native<ffi.Void Function(NagaTranslateResult)>()
+external void naga_free_translate_result(NagaTranslateResult result);
 
 /// A single validation error.
 final class NagaError extends ffi.Struct {
@@ -47,6 +69,19 @@ final class NagaError extends ffi.Struct {
 
 /// Result of WGSL validation.
 final class NagaValidationResult extends ffi.Struct {
+  /// Number of errors (0 = valid)
+  @ffi.Uint32()
+  external int error_count;
+
+  /// Pointer to array of NagaError (null if error_count == 0)
+  external ffi.Pointer<NagaError> errors;
+}
+
+/// Result of GLSL to WGSL translation.
+final class NagaTranslateResult extends ffi.Struct {
+  /// WGSL source code (null if translation failed)
+  external ffi.Pointer<ffi.Char> wgsl;
+
   /// Number of errors (0 = valid)
   @ffi.Uint32()
   external int error_count;

@@ -26,6 +26,17 @@ pub struct NagaError {
     pub length: i32,
 }
 
+/// Result of GLSL to WGSL translation.
+#[repr(C)]
+pub struct NagaTranslateResult {
+    /// WGSL source code (null if translation failed)
+    pub wgsl: *mut c_char,
+    /// Number of errors (0 = valid)
+    pub error_count: u32,
+    /// Pointer to array of NagaError (null if error_count == 0)
+    pub errors: *mut NagaError,
+}
+
 /// Validate WGSL source code.
 ///
 /// Returns a NagaValidationResult with error_count=0 if valid,
@@ -71,16 +82,96 @@ pub extern "C" fn naga_validate_wgsl(
     }
 }
 
+/// Translate GLSL source code to WGSL.
+///
+/// stage: 0 = vertex, 1 = fragment, 2 = compute.
+/// defines_json is a JSON object whose string keys and values become GLSL
+/// preprocessor defines.
+///
+/// The caller must call naga_free_translate_result() to free the result.
+#[no_mangle]
+pub extern "C" fn naga_glsl_to_wgsl(
+    source: *const c_char,
+    stage: u32,
+    defines_json: *const c_char,
+) -> NagaTranslateResult {
+    if source.is_null() {
+        return make_single_translate_error("null source pointer", -1, -1);
+    }
+
+    let source_str = match unsafe { CStr::from_ptr(source) }.to_str() {
+        Ok(s) => s,
+        Err(_) => return make_single_translate_error("invalid UTF-8 in source", -1, -1),
+    };
+
+    let stage = match stage {
+        0 => naga::ShaderStage::Vertex,
+        1 => naga::ShaderStage::Fragment,
+        2 => naga::ShaderStage::Compute,
+        _ => return make_single_translate_error("invalid shader stage", -1, -1),
+    };
+
+    let defines = match parse_defines_json(defines_json) {
+        Ok(defines) => defines,
+        Err(message) => return make_single_translate_error(&message, -1, -1),
+    };
+
+    let options = naga::front::glsl::Options { stage, defines };
+    let mut frontend = naga::front::glsl::Frontend::default();
+    let module = match frontend.parse(&options, source_str) {
+        Ok(module) => module,
+        Err(parse_errors) => {
+            return glsl_parse_errors_to_translate_result(&parse_errors, source_str)
+        }
+    };
+
+    let mut validator = naga::valid::Validator::new(
+        naga::valid::ValidationFlags::all(),
+        naga::valid::Capabilities::all(),
+    );
+
+    let info = match validator.validate(&module) {
+        Ok(info) => info,
+        Err(validation_error) => {
+            let validation = validation_error_to_result(&validation_error, source_str);
+            return translate_result_from_validation_result(validation);
+        }
+    };
+
+    match naga::back::wgsl::write_string(&module, &info, naga::back::wgsl::WriterFlags::empty()) {
+        Ok(wgsl) => NagaTranslateResult {
+            wgsl: CString::new(wgsl).unwrap_or_default().into_raw(),
+            error_count: 0,
+            errors: ptr::null_mut(),
+        },
+        Err(error) => make_single_translate_error(&format!("WGSL write error: {error}"), -1, -1),
+    }
+}
+
 /// Free a validation result returned by naga_validate_wgsl.
 #[no_mangle]
 pub extern "C" fn naga_free_validation_result(result: NagaValidationResult) {
-    if result.errors.is_null() || result.error_count == 0 {
+    free_error_array(result.errors, result.error_count);
+}
+
+/// Free a translation result returned by naga_glsl_to_wgsl.
+#[no_mangle]
+pub extern "C" fn naga_free_translate_result(result: NagaTranslateResult) {
+    if !result.wgsl.is_null() {
+        unsafe {
+            drop(CString::from_raw(result.wgsl));
+        }
+    }
+    free_error_array(result.errors, result.error_count);
+}
+
+fn free_error_array(errors_ptr: *mut NagaError, error_count: u32) {
+    if errors_ptr.is_null() || error_count == 0 {
         return;
     }
 
     // Free each error's message
-    let errors =
-        unsafe { std::slice::from_raw_parts_mut(result.errors, result.error_count as usize) };
+    let errors = unsafe { std::slice::from_raw_parts_mut(errors_ptr, error_count as usize) };
     for error in errors.iter() {
         if !error.message.is_null() {
             unsafe {
@@ -92,30 +183,74 @@ pub extern "C" fn naga_free_validation_result(result: NagaValidationResult) {
     // Free the array itself
     unsafe {
         drop(Vec::from_raw_parts(
-            result.errors,
-            result.error_count as usize,
-            result.error_count as usize,
+            errors_ptr,
+            error_count as usize,
+            error_count as usize,
         ));
     }
 }
 
 // Helper: create result with a single error
 fn make_single_error(message: &str, offset: i32, length: i32) -> NagaValidationResult {
-    let c_message = CString::new(message).unwrap_or_default().into_raw();
-
-    let error = NagaError {
-        message: c_message,
-        offset,
-        length,
-    };
-
-    let mut errors = vec![error];
-    let ptr = errors.as_mut_ptr();
-    std::mem::forget(errors);
+    let (ptr, count) = make_error_array(vec![make_error(message, offset, length)]);
 
     NagaValidationResult {
-        error_count: 1,
+        error_count: count,
         errors: ptr,
+    }
+}
+
+fn make_single_translate_error(message: &str, offset: i32, length: i32) -> NagaTranslateResult {
+    let (ptr, count) = make_error_array(vec![make_error(message, offset, length)]);
+
+    NagaTranslateResult {
+        wgsl: ptr::null_mut(),
+        error_count: count,
+        errors: ptr,
+    }
+}
+
+fn make_error(message: &str, offset: i32, length: i32) -> NagaError {
+    NagaError {
+        message: CString::new(message).unwrap_or_default().into_raw(),
+        offset,
+        length,
+    }
+}
+
+fn make_error_array(mut errors: Vec<NagaError>) -> (*mut NagaError, u32) {
+    let count = errors.len() as u32;
+    let ptr = errors.as_mut_ptr();
+    std::mem::forget(errors);
+    (ptr, count)
+}
+
+fn parse_defines_json(
+    defines_json: *const c_char,
+) -> Result<naga::FastHashMap<String, String>, String> {
+    let mut defines = naga::FastHashMap::default();
+    if defines_json.is_null() {
+        return Ok(defines);
+    }
+
+    let defines_str = unsafe { CStr::from_ptr(defines_json) }
+        .to_str()
+        .map_err(|_| "invalid UTF-8 in defines_json".to_string())?;
+    if defines_str.trim().is_empty() {
+        return Ok(defines);
+    }
+
+    let parsed: std::collections::HashMap<String, String> = serde_json::from_str(defines_str)
+        .map_err(|error| format!("invalid defines_json: {error}"))?;
+    defines.extend(parsed);
+    Ok(defines)
+}
+
+fn translate_result_from_validation_result(result: NagaValidationResult) -> NagaTranslateResult {
+    NagaTranslateResult {
+        wgsl: ptr::null_mut(),
+        error_count: result.error_count,
+        errors: result.errors,
     }
 }
 
@@ -133,6 +268,21 @@ fn parse_error_to_result(
         .unwrap_or((-1, -1));
 
     make_single_error(&message, offset, length)
+}
+
+fn glsl_parse_errors_to_translate_result(
+    errors: &naga::front::glsl::ParseErrors,
+    source: &str,
+) -> NagaTranslateResult {
+    let message = errors.emit_to_string(source);
+    let (offset, length) = errors
+        .errors
+        .first()
+        .and_then(|error| error.location(source))
+        .map(|loc| (loc.offset as i32, loc.length as i32))
+        .unwrap_or((-1, -1));
+
+    make_single_translate_error(&message, offset, length)
 }
 
 // Convert naga validation error to result
