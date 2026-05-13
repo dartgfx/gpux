@@ -1,10 +1,14 @@
 name: naga
-description: WGSL validation and shader compilation for Dart.
-version: 0.1.0
+description: Shader validation and translation for Dart using naga.
+version: 0.2.0
 repository: https://github.com/dartgfx/gpux
 topics:
   - gpu
   - wgsl
+  - glsl
+  - hlsl
+  - msl
+  - spirv
   - shader
   - webgpu
 

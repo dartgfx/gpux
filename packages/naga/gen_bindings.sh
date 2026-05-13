@@ -15,11 +15,19 @@ cbindgen --config cbindgen.toml --output include/naga_native.h
 cd ..
 
 echo "==> Generating Dart bindings from C header..."
-dart run ffigen --config ffigen.yaml
+if command -v fvm >/dev/null 2>&1; then
+  fvm dart run ffigen --config ffigen.yaml
+else
+  dart run ffigen --config ffigen.yaml
+fi
 
 echo "==> Formatting generated file..."
-dart format lib/src/ffi/bindings_generated.dart
+if command -v fvm >/dev/null 2>&1; then
+  fvm dart format lib/src/bindings/bindings_generated.dart
+else
+  dart format lib/src/bindings/bindings_generated.dart
+fi
 
 echo "==> Done! Generated:"
 echo "    native/include/naga_native.h"
-echo "    lib/src/ffi/bindings_generated.dart"
+echo "    lib/src/bindings/bindings_generated.dart"

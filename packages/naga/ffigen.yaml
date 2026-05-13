@@ -3,7 +3,7 @@
 
 name: NagaNativeBindings
 description: Auto-generated FFI bindings for naga_native
-output: lib/src/ffi/bindings_generated.dart
+output: lib/src/bindings/bindings_generated.dart
 
 # Use @Native annotations for Native Assets integration
 ffi-native:
